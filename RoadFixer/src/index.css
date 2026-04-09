@@ -1,14 +1,20 @@
-:root {
-  --preto: #121212;
-  --cinza-escuro: #1e1e1e;
-  --branco: #ffffff;
-  --laranja: #ff6600; 
-  --laranja-hover: #e65c00;
+html {
+  scroll-behavior: smooth;
 }
 
-body {
-  background-color: var(--preto);
-  color: var(--branco);
-  font-family: 'Inter', sans-serif; 
-  margin: 0;
+h1, h2, h3 {
+  text-transform: uppercase;
+  letter-spacing: -1px;
+  font-weight: 800;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--preto);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--laranja);
+  border-radius: 10px;
 }

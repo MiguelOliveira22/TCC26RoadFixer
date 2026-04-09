@@ -1,12 +1,7 @@
-// components/Footer.jsx
 export default function Footer() {
   return (
     <footer style={styles.footer}>
       <div style={styles.top}>
-        <div>
-          <h2 style={{margin: 0}}>ACIDENTES<span style={{color: 'var(--laranja)'}}>UAU</span></h2>
-          <p style={{color: '#666'}}>Dados que salvam vidas nas estradas brasileiras.</p>
-        </div>
         <div style={styles.links}>
           <span>Privacidade</span>
           <span>Termos</span>
