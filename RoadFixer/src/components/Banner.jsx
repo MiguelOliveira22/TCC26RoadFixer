@@ -1,11 +1,21 @@
-// components/Banner.jsx
+import { useNavigate } from 'react-router-dom';
+
 export default function Banner() {
+  const navigate = useNavigate(); // Hook para navegação
+
   return (
     <section style={styles.hero}>
       <div style={styles.content}>
         <h2 style={styles.title}>SEGURANÇA NAS <br/> <span style={{color: 'var(--laranja)'}}>RODOVIAS</span></h2>
         <p style={styles.subtitle}>Dados em tempo real e informações cruciais sobre transportes.</p>
-        <button style={styles.mainBtn}>Ver Relatórios</button>
+        
+        {/* Adicione o onClick aqui */}
+        <button 
+          style={styles.mainBtn} 
+          onClick={() => navigate('/mapa')}
+        >
+          Ver Relatórios
+        </button>
       </div>
     </section>
   )
@@ -17,7 +27,7 @@ const styles = {
     display: 'flex',
     alignItems: 'center',
     padding: '0 5%',
-    background: 'linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), url("https://images.unsplash.com/photo-1510511459019-5dee995d3ff4?auto=format&fit=crop&q=80&w=2070") shadow',
+    background: 'linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), url("https://images.unsplash.com/photo-1510511459019-5dee995d3ff4?auto=format&fit=crop&q=80&w=2070")',
     backgroundSize: 'cover',
     backgroundPosition: 'center'
   },

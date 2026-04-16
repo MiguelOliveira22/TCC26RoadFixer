@@ -1,4 +1,3 @@
-// components/Features.jsx
 export default function Features() {
   const cards = [
     { title: "Monitoramento", desc: "Câmeras ao vivo e sensores de pista 24h." },
