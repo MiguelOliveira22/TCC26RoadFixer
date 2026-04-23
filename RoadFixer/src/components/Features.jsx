@@ -6,7 +6,7 @@ export default function Features() {
   ];
 
   return (
-    <section style={styles.section}>
+    <section id="foco" style={styles.section}>
       <h2 style={styles.title}>NOSSO <span style={{color: 'var(--laranja)'}}>FOCO</span></h2>
       <div style={styles.grid}>
         {cards.map((card, i) => (

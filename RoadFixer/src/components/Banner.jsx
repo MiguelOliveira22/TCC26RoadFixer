@@ -1,21 +1,13 @@
-import { useNavigate } from 'react-router-dom';
+import { Link } from "react-router-dom";
 
 export default function Banner() {
-  const navigate = useNavigate(); // Hook para navegação
-
   return (
-    <section style={styles.hero}>
+    <section id="home" style={styles.hero}>
       <div style={styles.content}>
         <h2 style={styles.title}>SEGURANÇA NAS <br/> <span style={{color: 'var(--laranja)'}}>RODOVIAS</span></h2>
         <p style={styles.subtitle}>Dados em tempo real e informações cruciais sobre transportes.</p>
         
-        {/* Adicione o onClick aqui */}
-        <button 
-          style={styles.mainBtn} 
-          onClick={() => navigate('/mapa')}
-        >
-          Ver Relatórios
-        </button>
+        <Link to="/mapa" style={styles.mainBtn}>Ver Relatórios</Link>
       </div>
     </section>
   )
@@ -23,7 +15,7 @@ export default function Banner() {
 
 const styles = {
   hero: {
-    height: '80vh',
+    minHeight: '80vh',
     display: 'flex',
     alignItems: 'center',
     padding: '0 5%',
@@ -34,6 +26,7 @@ const styles = {
   title: { fontSize: '4rem', margin: 0, lineHeight: '1.1' },
   subtitle: { fontSize: '1.2rem', color: '#ccc', margin: '20px 0' },
   mainBtn: {
+    display: 'inline-block',
     padding: '1rem 2rem',
     fontSize: '1rem',
     backgroundColor: 'transparent',
@@ -41,6 +34,7 @@ const styles = {
     color: 'var(--laranja)',
     fontWeight: 'bold',
     cursor: 'pointer',
-    transition: '0.4s'
+    transition: '0.4s',
+    textDecoration: 'none'
   }
 }

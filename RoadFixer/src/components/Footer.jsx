@@ -3,9 +3,9 @@ export default function Footer() {
     <footer style={styles.footer}>
       <div style={styles.top}>
         <div style={styles.links}>
-          <span>Privacidade</span>
-          <span>Termos</span>
-          <span>Contato</span>
+          <a href="#home" style={styles.link}>Home</a>
+          <a href="#estatisticas" style={styles.link}>Estatisticas</a>
+          <a href="#mapa" style={styles.link}>Mapa</a>
         </div>
       </div>
       <div style={styles.bottom}>
@@ -30,6 +30,7 @@ const styles = {
     gap: '20px'
   },
   links: { display: 'flex', gap: '30px', color: '#888', fontSize: '0.9rem' },
+  link: { color: '#888', textDecoration: 'none' },
   bottom: {
     textAlign: 'center',
     color: '#444',

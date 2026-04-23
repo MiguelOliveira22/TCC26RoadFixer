@@ -6,7 +6,7 @@ export default function RecentAccidents() {
   ];
 
   return (
-    <section style={styles.section}>
+    <section id="relatos" style={styles.section}>
       <h2 style={styles.title}>ÚLTIMOS <span style={{color: 'var(--laranja)'}}>RELATOS</span></h2>
       <div style={styles.tableWrapper}>
         <table style={styles.table}>
@@ -28,7 +28,9 @@ export default function RecentAccidents() {
                    </span>
                 </td>
                 <td style={styles.td}>{r.gravidade}</td>
-                <td style={styles.td}><button style={styles.miniBtn}>DETALHES</button></td>
+                <td style={styles.td}>
+                  <a href="#mapa" style={styles.miniBtn}>DETALHES</a>
+                </td>
               </tr>
             ))}
           </tbody>
@@ -48,11 +50,13 @@ const styles = {
   td: { padding: '15px' },
   badge: { fontSize: '0.8rem', fontWeight: 'bold' },
   miniBtn: { 
+    display: 'inline-block',
     backgroundColor: 'transparent', 
     border: '1px solid #444', 
     color: '#fff', 
     padding: '5px 10px', 
     cursor: 'pointer',
-    fontSize: '0.7rem'
+    fontSize: '0.7rem',
+    textDecoration: 'none'
   }
 };

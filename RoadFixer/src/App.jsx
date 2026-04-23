@@ -9,33 +9,22 @@ import MapaPage from "./Pages/MapaPage"
 import SaibaMaisPage from "./Pages/saibaMaisPage"
 import './App.css'
 
+
 function App() {
   return (
     <Router>
       <div className="app-container">
-        <Navbar />
         <Routes>
-          {/* Rota da Página Inicial */}
-          <Route path="/" element={
-            <main>
-              <Banner />
-              <Stats />
-              <Features />
-              <RecentAccidents />
-            </main>
-          } />
-          
-          {/* Rota da Página do Mapa */}
+          <Route path="/" element={<HomePage />} />
           <Route path="/mapa" element={<MapaPage />} />
 
           {/* Rota da pagina Saiba Mais */}
           <Route path="/saibaMais" element={<SaibaMaisPage />}/>
 
         </Routes>
-        <Footer />
       </div>
     </Router>
-  )
+  );
 }
 
 export default App;

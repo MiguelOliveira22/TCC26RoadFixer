@@ -6,11 +6,23 @@
   --laranja-hover: #e65c00;
 }
 
+* {
+  box-sizing: border-box;
+}
+
 body {
   background-color: var(--preto);
   color: var(--branco);
   font-family: 'Inter', sans-serif; 
   margin: 0;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+.app-container {
+  min-height: 100vh;
 }
 
 .feature-card:hover {
@@ -21,4 +33,10 @@ body {
 
 .leaflet-container {
   filter: hue-rotate(10deg) saturate(150%) brightness(0.8);
+}
+
+@media (max-width: 768px) {
+  h1, h2, h3 {
+    letter-spacing: 0;
+  }
 }

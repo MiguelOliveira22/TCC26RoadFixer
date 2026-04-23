@@ -7,7 +7,7 @@ export default function Stats() {
   ];
 
   return (
-    <section style={styles.container}>
+    <section id="estatisticas" style={styles.container}>
       <div style={styles.grid}>
         {data.map((item, index) => (
           <div key={index} style={styles.card}>
