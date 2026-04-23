@@ -1,15 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 
 export default function Navbar() {
-<<<<<<< Updated upstream
   const navigate = useNavigate(); // Hook para navegação
-=======
-  const links = [
-    { label: 'Home', href: '#home' },
-    { label: 'Estatisticas', href: '#estatisticas' },
-    { label: 'Mapa', href: '#mapa' },
-  ];
->>>>>>> Stashed changes
 
   return (
     <nav style={styles.nav}>
@@ -21,7 +13,6 @@ export default function Navbar() {
       </h1>
 
       <ul style={styles.ul}>
-<<<<<<< Updated upstream
         <li style={styles.li} onClick={() => navigate('/')}>
           Home
         </li>
@@ -32,17 +23,6 @@ export default function Navbar() {
 
         <li style={styles.button} onClick={() => navigate('/saibaMais')}>
           Saiba Mais
-=======
-        {links.map((link) => (
-          <li key={link.href}>
-            <a href={link.href} style={styles.link}>
-              {link.label}
-            </a>
-          </li>
-        ))}
-        <li>
-          <a href="#relatos" style={styles.button}>Saiba Mais</a>
->>>>>>> Stashed changes
         </li>
       </ul>
     </nav>
@@ -63,7 +43,6 @@ const styles = {
     color: 'white' 
   },
   logo: { fontSize: '1.5rem', fontWeight: 'bold' },
-<<<<<<< Updated upstream
   ul: { 
     display: 'flex', 
     listStyle: 'none', 
@@ -76,22 +55,6 @@ const styles = {
     cursor: 'pointer', 
     fontWeight: '500', 
     transition: '0.3s' 
-=======
-  ul: {
-    display: 'flex',
-    listStyle: 'none',
-    gap: '2rem',
-    alignItems: 'center',
-    margin: 0,
-    padding: 0
-  },
-  link: {
-    cursor: 'pointer',
-    fontWeight: '500',
-    transition: '0.3s',
-    color: 'var(--branco)',
-    textDecoration: 'none'
->>>>>>> Stashed changes
   },
   button: {
     display: 'inline-block',
@@ -101,12 +64,7 @@ const styles = {
     borderRadius: '4px',
     fontWeight: 'bold',
     cursor: 'pointer',
-<<<<<<< Updated upstream
     transition: '0.3s',
     border: 'none' // Garante que não haja borda de botão nativo
-=======
-    color: 'var(--branco)',
-    textDecoration: 'none'
->>>>>>> Stashed changes
   }
 }

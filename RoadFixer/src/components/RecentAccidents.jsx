@@ -1,9 +1,13 @@
+import { useNavigate } from "react-router-dom";
+
 export default function RecentAccidents() {
   const reports = [
     { id: 1, local: "BR-116 KM 240", status: "Bloqueado", gravidade: "Alta" },
     { id: 2, local: "BR-101 KM 012", status: "Liberado", gravidade: "Baixa" },
     { id: 3, local: "BR-381 KM 480", status: "Atenção", gravidade: "Média" },
   ];
+
+  const navigate = useNavigate(); // Hook para navegação
 
   return (
     <section id="relatos" style={styles.section}>
@@ -20,19 +24,24 @@ export default function RecentAccidents() {
           </thead>
           <tbody>
             {reports.map((r) => (
-              <tr key={r.id} style={styles.tr}>
-                <td style={styles.td}>{r.local}</td>
-                <td style={styles.td}>
-                   <span style={{...styles.badge, color: r.status === 'Bloqueado' ? 'var(--laranja)' : '#fff'}}>
-                     ● {r.status}
-                   </span>
-                </td>
-                <td style={styles.td}>{r.gravidade}</td>
-                <td style={styles.td}>
-                  <a href="#mapa" style={styles.miniBtn}>DETALHES</a>
-                </td>
-              </tr>
-            ))}
+                <tr key={r.id} style={styles.tr}>
+                  <td style={styles.td}>{r.local}</td>
+                  <td style={styles.td}>
+                    <span style={{...styles.badge, color: r.status === 'Bloqueado' ? 'var(--laranja)' : '#fff'}}>
+                      ● {r.status}
+                    </span>
+                  </td>
+                  <td style={styles.td}>{r.gravidade}</td>
+                  <td style={styles.td}>
+                    <button 
+                      style={styles.miniBtn} 
+                      onClick={() => navigate('/mapa')}
+                    >
+                      DETALHES
+                    </button>
+                  </td>
+                </tr>
+              ))}
           </tbody>
         </table>
       </div>

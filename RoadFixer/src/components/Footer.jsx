@@ -1,11 +1,15 @@
+import { useNavigate } from "react-router-dom";
+
 export default function Footer() {
+  const navigate = useNavigate();
+
   return (
     <footer style={styles.footer}>
       <div style={styles.top}>
         <div style={styles.links}>
-          <a href="#home" style={styles.link}>Home</a>
-          <a href="#estatisticas" style={styles.link}>Estatisticas</a>
-          <a href="#mapa" style={styles.link}>Mapa</a>
+          <span style={styles.link} onClick={() => navigate('/')}>Home</span>
+          <span style={styles.link} onClick={() => navigate('/mapa')}>Mapa</span>
+          <span style={styles.link} onClick={() => navigate('/saibaMais')}>Saiba Mais</span>
         </div>
       </div>
       <div style={styles.bottom}>
@@ -30,7 +34,7 @@ const styles = {
     gap: '20px'
   },
   links: { display: 'flex', gap: '30px', color: '#888', fontSize: '0.9rem' },
-  link: { color: '#888', textDecoration: 'none' },
+  link: { color: '#888', textDecoration: 'none', cursor: 'pointer' },
   bottom: {
     textAlign: 'center',
     color: '#444',

@@ -1,16 +1,23 @@
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 export default function Banner() {
+  const navigate = useNavigate();
+
   return (
     <section id="home" style={styles.hero}>
       <div style={styles.content}>
         <h2 style={styles.title}>SEGURANÇA NAS <br/> <span style={{color: 'var(--laranja)'}}>RODOVIAS</span></h2>
         <p style={styles.subtitle}>Dados em tempo real e informações cruciais sobre transportes.</p>
         
-        <Link to="/mapa" style={styles.mainBtn}>Ver Relatórios</Link>
+        <button 
+          style={styles.mainBtn} 
+          onClick={() => navigate('/mapa')}
+        >
+          Ver Relatórios
+        </button>
       </div>
     </section>
-  )
+  );
 }
 
 const styles = {
