@@ -1,8 +1,9 @@
+import CardData from "./cards/CardData";
+
 export default function Stats() {
   const data = [
-    { label: "Rodovias Monitoradas", value: "Todas" },
+    { label: "BR 330", value: "Rodovia em Foco" },
     { label: "Acidentes Registrados", value: "1.204 milhões" },
-    { label: "Transportes Ativos", value: "45.000+" },
     { label: "Tempo de Resposta", value: "12 min" },
   ];
 
@@ -10,11 +11,7 @@ export default function Stats() {
     <section id="estatisticas" style={styles.container}>
       <div style={styles.grid}>
         {data.map((item, index) => (
-          <div key={index} style={styles.card}>
-            <div style={styles.accent}></div>
-            <h3 style={styles.value}>{item.value}</h3>
-            <p style={styles.label}>{item.label}</p>
-          </div>
+          <CardData label={item.label} value={item.value} key={index}/>
         ))}
       </div>
     </section>
