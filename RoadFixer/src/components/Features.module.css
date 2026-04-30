@@ -1,0 +1,54 @@
+.section {
+    padding: 80px 5%;
+    background-color: var(--preto);
+}
+
+.title {
+    font-size: 2.5rem;
+    margin-bottom: 40px;
+    text-align: center;
+    color: #fff;
+}
+
+.highlight {
+    color: var(--laranja);
+}
+
+.grid {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.card {
+    flex: 1;
+    min-width: 300px;
+    padding: 40px;
+    border: 1px solid #333;
+    background-color: var(--cinza-escuro);
+    transition: 0.3s ease;
+    cursor: pointer;
+}
+
+/* Efeito de destaque ao passar o mouse */
+.card:hover {
+    border-color: var(--laranja);
+    transform: translateY(-5px);
+}
+
+.cardTitle {
+    color: var(--laranja);
+    margin-top: 0;
+}
+
+.link {
+    margin-top: 20px;
+    font-weight: bold;
+    font-size: 0.9rem;
+    color: var(--laranja);
+    transition: 0.3s;
+}
+
+.card:hover .link {
+    letter-spacing: 1px;
+}

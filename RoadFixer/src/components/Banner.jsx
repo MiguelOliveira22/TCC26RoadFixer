@@ -6,7 +6,7 @@ export default function Banner({
   highlight = "RODOVIAS", 
   subtitle = "Dados em tempo real e informações cruciais sobre transportes.", 
   buttonText = "Ver Relatórios", 
-  linkTo = "/mapa" 
+  linkTo = "/monitoramento"
 }) {
   const navigate = useNavigate();
 

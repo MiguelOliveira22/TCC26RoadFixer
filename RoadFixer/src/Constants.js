@@ -4,7 +4,7 @@ export const pathObject = {
     path: "/",
     children: [
         {
-            path: "/estatisticas",
+            path: "/monitoramento",
             children: []
         },
                 {
@@ -12,7 +12,7 @@ export const pathObject = {
             children: []
         },
         {
-            path: "/monitoramento",
+            path: "/estatisticas",
             children: []
         }
     ]

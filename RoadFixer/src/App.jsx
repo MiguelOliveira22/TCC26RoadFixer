@@ -17,7 +17,6 @@ function App() {
           <Route path={pathObject.path}             element={<HomePage />} />
           <Route path={pathObject.children[0].path} element={<MonitoramentoPage />} />
           <Route path={pathObject.children[1].path} element={<SaibaMaisPage />} />
-          <Route path={pathObject.children[2].path} element={} />
         </Routes>
 
         <Footer />
