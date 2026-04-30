@@ -1,20 +1,29 @@
 import { useNavigate } from "react-router-dom";
-import styles from "./Banner.module.css"
+import styles from "./Banner.module.css";
 
-export default function Banner() {
+export default function Banner({ 
+  title = "SEGURANÇA NAS", 
+  highlight = "RODOVIAS", 
+  subtitle = "Dados em tempo real e informações cruciais sobre transportes.", 
+  buttonText = "Ver Relatórios", 
+  linkTo = "/mapa" 
+}) {
   const navigate = useNavigate();
 
   return (
     <section id="home" className={styles.hero}>
       <div className={styles.content}>
-        <h2 className={styles.title}>SEGURANÇA NAS <br/> <span className={{color: 'var(--laranja)'}}>RODOVIAS</span></h2>
-        <p className={styles.subtitle}>Dados em tempo real e informações cruciais sobre transportes.</p>
+        <h2 className={styles.title}>
+          {title} <br/> 
+          <span className={styles.highlight}>{highlight}</span>
+        </h2>
+        <p className={styles.subtitle}>{subtitle}</p>
         
         <button 
           className={styles.mainBtn} 
-          onClick={() => navigate('/mapa')}
+          onClick={() => navigate(linkTo)}
         >
-          Ver Relatórios
+          {buttonText}
         </button>
       </div>
     </section>

@@ -12,6 +12,11 @@
     font-size: 4rem;
     margin: 0;
     line-height: 1.1;
+    color: #fff;
+}
+
+.highlight {
+    color: var(--laranja);
 }
 
 .subtitle {
@@ -30,5 +35,9 @@
     font-weight: bold;
     cursor: pointer;
     transition: 0.4s;
-    text-decoration: none;
+}
+
+.mainBtn:hover {
+    background-color: var(--laranja);
+    color: #000;
 }
