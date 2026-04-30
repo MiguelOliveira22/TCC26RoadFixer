@@ -1,7 +1,7 @@
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 
-export default function MapaPage() {
+export default function MonitoramentoPage() {
   const position = [-15.7801, -47.9292];
 
   return (
