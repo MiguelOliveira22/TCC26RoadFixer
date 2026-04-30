@@ -1,0 +1,17 @@
+.button {
+    display: inline-block;
+    text-transform: uppercase;
+    background-color: var(--laranja);
+    color: white;
+    padding: 0.3rem 1.0rem;
+    border-radius: 10px;
+    font-size: 30px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.3s;
+    border: none;
+}
+
+.button:hover {
+    background-color: #e67e00; /* Um laranja levemente mais escuro para o feedback de clique */
+}

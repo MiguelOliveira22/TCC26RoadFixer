@@ -1,0 +1,55 @@
+.page {
+  display: flex;
+  min-height: 100vh;
+  background-color: #0a0a0a;
+  color: white;
+  padding: 80px 5% 0;
+}
+
+.sidebar {
+  width: 30%;
+  padding-right: 50px;
+}
+
+.sidebarTitle {
+  font-size: 1.8rem;
+  font-weight: bold;
+  margin-bottom: 40px;
+}
+
+.menu {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.menuButton {
+  background: none;
+  border: none;
+  text-align: left;
+  font-size: 1.1rem;
+  font-weight: bold;
+  cursor: pointer;
+  padding: 0;
+  transition: 0.3s;
+}
+
+.content {
+  width: 70%;
+  border-left: 1px solid #222;
+  padding-left: 50px;
+}
+
+.contentTitle {
+  color: var(--laranja);
+  font-size: 2rem;
+  margin-bottom: 30px;
+  text-transform: uppercase;
+}
+
+.paragraph {
+  font-size: 1.1rem;
+  line-height: 1.6;
+  margin-bottom: 20px;
+  color: #eee;
+}

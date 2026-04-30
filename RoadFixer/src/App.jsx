@@ -7,7 +7,7 @@ import SaibaMaisPage from "./Pages/saibaMaisPage"; // Atenção ao nome do arqui
 import './App.css';
 import { pathObject } from './Constants';
 
-function App() {
+export default function App() {
   return (
     <Router>
       <div className="app-container">
@@ -25,4 +25,4 @@ function App() {
   );
 }
 
-export default App;
+// <Route path={pathObject.children[2].path} element={} />

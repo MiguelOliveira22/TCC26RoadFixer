@@ -1,5 +1,7 @@
 import { useNavigate } from 'react-router-dom';
-import styles from './Navbar.module.css';
+import { pathObject } from '../Constants';
+import styles from "./Navbar.module.css";
+import FilledButton from './Button/FilledButton';
 
 export default function Navbar() {
   const navigate = useNavigate();
@@ -8,24 +10,26 @@ export default function Navbar() {
     <nav className={styles.nav}>
       <h1 
         className={styles.logo} 
-        onClick={() => navigate('/')}
+        onClick={() => navigate(pathObject.path)}
       >
         Road<span className={styles.highlight}>Fixer</span>
       </h1>
 
       <ul className={styles.ul}>
-        <li className={styles.li} onClick={() => navigate('/')}>
-          Home
+        <li className={styles.li} onClick={() => navigate(pathObject.path)}>
+          Inicio
         </li>
 
-        <li className={styles.li} onClick={() => navigate('/estatisticas')}>
+        <li className={styles.li} onClick={() => navigate(pathObject.children[0].path)}>
           Estatísticas
         </li>
 
-        <li className={styles.button} onClick={() => navigate('/saiba-mais')}>
-          Saiba Mais
+        <li className={styles.li} onClick={() => navigate(pathObject.children[2].path)}>
+          Monitoramento
         </li>
+
+        <FilledButton value={ "Saiba Mais" } action={ () => navigate(pathObject.children[1].path) }/>
       </ul>
     </nav>
-  );
+  )
 }
