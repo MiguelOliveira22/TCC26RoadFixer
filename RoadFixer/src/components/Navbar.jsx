@@ -16,19 +16,31 @@ export default function Navbar() {
       </h1>
 
       <ul className={styles.ul}>
-        <li className={styles.li} onClick={() => navigate(pathObject.path)}>
+        <li className={styles.li} onClick={() => {
+          window.scrollTo(0, 0)
+          navigate(pathObject.path)
+          }}>
           Inicio
         </li>
 
-        <li className={styles.li} onClick={() => navigate(pathObject.children[0].path)}>
+        <li className={styles.li} onClick={() => {
+          window.scrollTo(0, 0)
+          navigate(pathObject.children[0].path)
+          }}>
           Estatísticas
         </li>
 
-        <li className={styles.li} onClick={() => navigate(pathObject.children[2].path)}>
+        <li className={styles.li} onClick={() => {
+          window.scrollTo(0, 0)
+          navigate(pathObject.children[2].path)
+          }}>
           Monitoramento
         </li>
 
-        <FilledButton value={ "Saiba Mais" } action={ () => navigate(pathObject.children[1].path) }/>
+        <FilledButton value={ "Saiba Mais" } action={ () => {
+          window.scrollTo(0, 0)
+          navigate(pathObject.children[1].path)
+          } }/>
       </ul>
     </nav>
   )
