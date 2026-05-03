@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
-import styles from "./RecentAccidents.module.css";
+import styles from "./DataCollection.module.css";
+import ScaffoldButton from "./Button/ScaffoldButton";
 
 export default function RecentAccidents() {
   const navigate = useNavigate();
@@ -41,6 +42,10 @@ export default function RecentAccidents() {
             ))}
           </tbody>
         </table>
+        <ScaffoldButton
+              value = {"Ver mais conjuntos de dados"}
+              orange = {false}
+            />
       </div>
     </section>
   );

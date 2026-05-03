@@ -1,0 +1,42 @@
+.buttonOrange {
+    width: 100%;
+    display: inline-block;
+    text-transform: uppercase;
+    text-align: center;
+    color: var(--laranja);
+    padding: 0.3rem 1.0rem;
+    border: 3px solid var(--laranja);
+    border-radius: 10px;
+    font-size: 30px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.buttonOrange:hover
+{
+    color: #e67e00; /* Um laranja levemente mais escuro para o feedback de clique */
+    border-color: #e67e00;
+}
+
+.buttonWhite
+{
+    width: 100%;
+    display: inline-block;
+    text-transform: uppercase;
+    text-align: center;
+    color: var(--branco);
+    padding: 0.3rem 1.0rem;
+    border: 3px solid var(--branco);
+    border-radius: 10px;
+    font-size: 30px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.buttonWhite:hover
+{
+    color: rgb(182, 182, 182);
+    border-color: rgb(182, 182, 182);
+}
