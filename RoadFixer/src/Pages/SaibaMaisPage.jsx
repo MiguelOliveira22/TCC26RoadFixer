@@ -48,11 +48,9 @@ export default function SaibaMaisPage() {
           {Object.keys(conteudos).map((nome) => (
             <button 
               key={nome}
-              onClick={() => setSecaoAtiva(nome)}
-              className={{
-                ...styles.menuButton,
-                color: secaoAtiva === nome ? 'var(--laranja)' : '#888'
-              }}
+              style = {{color: secaoAtiva === nome ? 'var(--laranja)' : '#888'}}
+              onClick={() => {setSecaoAtiva(nome)}}
+              className={ styles.menuButton }
             >
               {nome}
             </button>

@@ -3,7 +3,7 @@ import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import HomePage from './Pages/HomePage';
 import MonitoramentoPage from "./Pages/MonitoramentoPage";
-import SaibaMaisPage from "./Pages/saibaMaisPage"; // Atenção ao nome do arquivo!
+import SaibaMaisPage from "./Pages/SaibaMaisPage"; // Atenção ao nome do arquivo!
 import './App.css';
 import { pathObject } from './Constants';
 
