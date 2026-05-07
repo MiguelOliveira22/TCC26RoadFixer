@@ -14,7 +14,7 @@ export default function HomePage() {
       <Stats />
       <Features />
       <RecentAccidents />
-       <ScaffoldButton
+      <ScaffoldButton
         value = {"Ver mais conjuntos de dados"}
         action= {() => setOpenPopup(true)}
         orange = {false}

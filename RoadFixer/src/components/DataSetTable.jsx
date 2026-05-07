@@ -1,5 +1,6 @@
 // DataSetTable.jsx
 import styles from "./DataSetTable.module.css";
+import ScaffoldButton from "./Button/ScaffoldButton";
 
 const datasets = [
   "CLIMA",
@@ -39,9 +40,10 @@ export function DatasetTable({ isOpen, onClose }) {
             <tr className={styles.datasetRow} key={index}>
               <td>{item}</td>
               <td>
-                <button className={styles.datasetDetailsBtn}>
-                  Detalhes
-                </button>
+                <ScaffoldButton
+                  value = {"Detalhes"}
+                  orange = {false}
+                />
               </td>
             </tr>
           ))}
