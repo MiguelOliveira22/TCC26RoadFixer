@@ -1,28 +1,22 @@
 import Banner from "../components/Banner";
 import Stats from "../components/Stats";
 import Features from "../components/Features";
-import RecentAccidents from "../components/DataCollection";
-import ScaffoldButton from "../components/Button/ScaffoldButton";
-import { DatasetTable } from "../components/DataSetTable";
-import { useState } from "react";
+import DataCollection from "../components/DataCollection";
 
 export default function HomePage() {
-  const [openPopup, setOpenPopup] = useState(false);  
+  // Não temos url para os tipos de dados que ainda coletaremos
+  const reports = [
+    { id: 1, data: ["Clima" , {url: ""}]},
+    { id: 2, data: ["Topologia" , {url: ""}]},
+    { id: 3, data: ["Estrutura física da pista" , {url: ""}]},
+  ];
+
   return (
     <main style={{ backgroundColor: 'var(--preto)' }}>
       <Banner />
       <Stats />
       <Features />
-      <RecentAccidents />
-      <ScaffoldButton
-        value = {"Ver mais conjuntos de dados"}
-        action= {() => setOpenPopup(true)}
-        orange = {false}
-      />
-      <DatasetTable
-        isOpen={openPopup}
-        onClose={() => setOpenPopup(false)}
-      />
+      <DataCollection headers={["DADO", "LINK"]} reports={reports} idCabecalho={0} />
     </main>
   );
 }

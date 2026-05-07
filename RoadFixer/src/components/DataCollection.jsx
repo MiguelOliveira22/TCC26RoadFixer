@@ -1,47 +1,65 @@
-import { useNavigate } from "react-router-dom";
 import styles from "./DataCollection.module.css";
 import ScaffoldButton from "./Button/ScaffoldButton";
+import { DatasetTable } from "../components/DataSetTable";
+import { useState } from "react";
 
-export default function RecentAccidents() {
-  const navigate = useNavigate();
-
-  // Não temos url para os tipos de dados que ainda coletaremos
-  const reports = [
-    { id: 1, dado: "Clima" , url: ""},
-    { id: 2, dado: "Topologia" , url: ""},
-    { id: 3, dado: "Estrutura física da pista" , url: ""},
+export default function DataCollection({ headers, reports, idCabecalho }) {
+  const cabecalhos = [
+    (<span>CONJUNTO DE <span className={styles.highlight}>DADOS UTILIZADOS</span></span>),
+    (<span>HISTÓRICO DE <span className={styles.highlight}>ACIDENTES</span></span>)
   ];
+
+  const buttons = [
+    "VER MAIS CONJUNTOS DE DADOS",
+    "VER MAIS DADOS HISTÓRICOS"
+  ];
+
+  const [openPopup, setOpenPopup] = useState(false);  
 
   return (
     <section id="relatos" className={styles.section}>
       <h2 className={styles.title}>
-        CONJUNTO DE <span className={styles.highlight}>DADOS UTILIZADOS</span>
+        {cabecalhos[idCabecalho]}
       </h2>
       
       <div className={styles.tableWrapper}>
         <table className={styles.table}>
           <thead>
             <tr>
-              <th className={styles.th}>DADO</th>
-              <th className={styles.th}>LINK</th>
+              {headers.map((tbHeader) => (
+                <th className={styles.th}>{tbHeader}</th>
+              ))}
             </tr>
           </thead>
           <tbody>
-            {reports.map((r) => (
-              <tr key={r.id} className={styles.tr}>
-                <td className={styles.td}>{r.dado}</td>
-                <td className={styles.td}>
-                  <button 
-                    className={styles.miniBtn} 
-                    onClick={() => window.open(r.url, '_blank')}
-                  >
-                    DETALHES
-                  </button>
-                </td>
-              </tr>
-            ))}
+            { reports.map((link) => {
+              return (
+                <tr key={link.id} className={styles.tr}>
+                  { link.data.map((dt) => (
+                    <td className={styles.td}>
+                      {dt.url != null ? (
+                      <ScaffoldButton
+                        value="DETALHES"
+                        action={dt.url ? () => window.open(dt.url, '_blank') : dt.action}
+                        orange={false}
+                        small={true}
+                      />) : dt}
+                    </td>
+                  ))}
+                </tr>
+              );
+            })}
           </tbody>
         </table>
+        <ScaffoldButton
+          value = { buttons[idCabecalho] }
+          action= {() => setOpenPopup(true)}
+          orange = {false}
+        />
+        <DatasetTable
+          isOpen={openPopup}
+          onClose={() => setOpenPopup(false)}
+        />
       </div>
     </section>
   );

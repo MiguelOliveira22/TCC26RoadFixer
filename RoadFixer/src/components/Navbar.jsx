@@ -30,8 +30,8 @@ export default function Navbar() {
         }}/>
 
         <FilledButton value={ "Saiba Mais" } action={ () => {
-          window.scrollTo(0, 0)
-          navigate(pathObject.children[1].path)
+          window.scrollTo(0, 0);
+          navigate(pathObject.children[1].path);
         } }/>
       </ul>
     </nav>
