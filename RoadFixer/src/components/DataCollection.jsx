@@ -42,10 +42,6 @@ export default function RecentAccidents() {
             ))}
           </tbody>
         </table>
-        <ScaffoldButton
-          value = {"Ver mais conjuntos de dados"}
-          orange = {false}
-        />
       </div>
     </section>
   );

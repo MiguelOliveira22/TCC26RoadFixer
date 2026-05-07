@@ -1,0 +1,114 @@
+/* DataSetTable.css */
+
+.datasetOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.72);
+  backdrop-filter: blur(2px);
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  z-index: 9999;
+}
+
+.datasetModal {
+  width: 80%;
+  max-width: 950px;
+
+  background: #111;
+  border: 1px solid #1f1f1f;
+  border-radius: 6px;
+
+  padding: 40px;
+
+  color: white;
+
+  animation: datasetFade 0.25s ease;
+}
+
+.datasetBackBtn {
+  background: transparent;
+  border: none;
+
+  color: white;
+  font-size: 13px;
+  font-weight: bold;
+
+  margin-bottom: 25px;
+  cursor: pointer;
+}
+
+.datasetTitle {
+  text-align: center;
+  font-size: 34px;
+
+  margin-bottom: 35px;
+}
+
+.datasetTitle span {
+  color: #ff7a00;
+}
+
+.datasetTable {
+  width: 100%;
+}
+
+.datasetHeader,
+.datasetRow {
+  display: grid;
+  grid-template-columns: 1fr 180px;
+  align-items: center;
+
+  padding: 10px 0;
+}
+
+.datasetHeader {
+  border-bottom: 1px solid #ff7a00;
+
+  margin-bottom: 10px;
+
+  color: #888;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.datasetDetailsBtn {
+  background: transparent;
+
+  color: white;
+  border: 2px solid white;
+  border-radius: 999px;
+
+  padding: 5px 16px;
+
+  font-size: 12px;
+  font-weight: bold;
+
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.datasetDetailsBtn:hover {
+  background: white;
+  color: black;
+}
+
+.th{
+    text-align: left;
+    color: #888;
+    font-size: 0.8rem;
+}
+
+@keyframes datasetFade {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
