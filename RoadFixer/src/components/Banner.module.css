@@ -24,20 +24,3 @@
     color: #ccc;
     margin: 20px 0;
 }
-
-.mainBtn {
-    display: inline-block;
-    padding: 1rem 2rem;
-    font-size: 1rem;
-    background-color: transparent;
-    border: 2px solid var(--laranja);
-    color: var(--laranja);
-    font-weight: bold;
-    cursor: pointer;
-    transition: 0.4s;
-}
-
-.mainBtn:hover {
-    background-color: var(--laranja);
-    color: #000;
-}
