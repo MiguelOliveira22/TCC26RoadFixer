@@ -19,12 +19,12 @@ export default function Navbar() {
           navigate(pathObject.path);
         }}/>
 
-        <BaseButton value={ "Estatísticas" } action={ () => {
+        <BaseButton value={ "Monitoramento" } action={ () => {
           window.scrollTo(0, 0);
           navigate(pathObject.children[0].path);
         }}/>
 
-        <BaseButton value={ "Monitoramento" } action={ () => {
+        <BaseButton value={ "Estatísticas" } action={ () => {
           window.scrollTo(0, 0);
           navigate(pathObject.children[2].path);
         }}/>

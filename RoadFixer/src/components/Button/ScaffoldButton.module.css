@@ -1,5 +1,6 @@
 .scaffoldButton {
     border: 3px solid var(--branco);
+    width: 100%;
 }
 
 .scaffoldButtonOrange {

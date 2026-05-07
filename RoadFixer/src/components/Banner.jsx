@@ -8,7 +8,7 @@ export default function Banner({
   highlight = "RODOVIAS", 
   subtitle = "Dados em tempo real e informações cruciais sobre transportes.", 
   buttonText = "Ver Relatórios", 
-  linkTo = pathObject.children[0].path
+  linkTo = pathObject.children[2].path
 }) {
   const navigate = useNavigate();
 
@@ -25,6 +25,9 @@ export default function Banner({
           window.scrollTo(0, 0);
           navigate(linkTo);
         }} orange/>
+      </div>
+      <div className={styles.rights}>
+        <p>Foto por <span className={styles.bold}>Aderlei de Souza</span></p>
       </div>
     </section>
   );

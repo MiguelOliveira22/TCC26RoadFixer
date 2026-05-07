@@ -2,6 +2,7 @@
     background-color: var(--laranja);
     border: 2px solid var(--laranja);
     box-shadow: 4px 4px 0px var(--laranja);
+    width: 100%;
 }
 
 .filledButton:hover {

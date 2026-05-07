@@ -6,6 +6,7 @@ import MonitoramentoPage from "./Pages/MonitoramentoPage";
 import SaibaMaisPage from "./Pages/SaibaMaisPage"; // Atenção ao nome do arquivo!
 import './App.css';
 import { pathObject } from './Constants';
+import EstatisticasPage from './Pages/EstatisticasPage';
 
 export default function App() {
   return (
@@ -17,6 +18,7 @@ export default function App() {
           <Route path={pathObject.path}             element={<HomePage />} />
           <Route path={pathObject.children[0].path} element={<MonitoramentoPage />} />
           <Route path={pathObject.children[1].path} element={<SaibaMaisPage />} />
+          <Route path={pathObject.children[2].path} element={<EstatisticasPage />} />
         </Routes>
 
         <Footer />

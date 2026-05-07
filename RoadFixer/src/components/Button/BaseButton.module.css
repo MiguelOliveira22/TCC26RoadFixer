@@ -1,5 +1,5 @@
 .button {
-    width: 100%;
+    width: max-content;
     display: inline-block;
 
     text-transform: uppercase;

@@ -1,0 +1,54 @@
+.section {
+  padding: 60px 5% 80px;
+  background-color: var(--preto);
+}
+
+.header {
+  max-width: 720px;
+  margin-bottom: 24px;
+}
+
+.kicker {
+  color: var(--laranja);
+  letter-spacing: 2px;
+  font-size: 0.8rem;
+  margin-bottom: 8px;
+}
+
+.title {
+  margin: 0 0 12px;
+  font-size: 2.5rem;
+}
+
+.subtitle {
+  color: #b7b7b7;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.mapWrapper {
+  height: 600px;
+  width: 100%;
+  border-radius: 15px;
+  overflow: hidden;
+  border: 2px solid var(--cinza-escuro);
+}
+
+.grafico {
+    display: flex;
+    gap: 20px;
+    flex-direction: column;
+}
+
+.graficoLinhas {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 15rem;
+
+    background-color: #222;
+    color: #000;
+
+    border: 2px solid #222;
+    border-radius: 10px;
+}
