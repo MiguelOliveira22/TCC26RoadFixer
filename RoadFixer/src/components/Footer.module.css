@@ -31,12 +31,17 @@
     .divider {
         display: none;
     }
+
+    .topSection {
+        flex-direction: column;
+        gap: 40px;
+    }
 }
 
 .columnTitle {
     font-size: 1.1rem;
     font-weight: bold;
-    margin-bottom: 1.5rem;
+    margin-bottom: 1rem;
     letter-spacing: 1px;
 }
 

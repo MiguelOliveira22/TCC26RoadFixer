@@ -1,17 +1,11 @@
-.button {
-    display: inline-block;
-    text-transform: uppercase;
+.filledButton {
     background-color: var(--laranja);
-    color: white;
-    padding: 0.3rem 1.0rem;
-    border-radius: 10px;
-    font-size: 30px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: 0.3s;
-    border: none;
+    border: 2px solid var(--laranja);
+    box-shadow: 4px 4px 0px var(--laranja);
 }
 
-.button:hover {
-    background-color: #e67e00; /* Um laranja levemente mais escuro para o feedback de clique */
+.filledButton:hover {
+    color: var(--branco);
+    box-shadow: 2px 2px 0px var(--laranja);
+    transform: translate(2px, 2px); /* Move o botão para "encaixar" na sombra */
 }

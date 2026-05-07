@@ -1,0 +1,21 @@
+.button {
+    width: 100%;
+    display: inline-block;
+
+    text-transform: uppercase;
+    text-align: center;
+    padding: 0.3rem 1.0rem;
+    border-radius: 10px;
+    border: none;
+
+    font-size: clamp(1rem, 0.5rem + 1vw, 2rem);
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.3s;
+    
+    color: var(--branco);
+}
+
+.button:hover {
+    color: var(--laranja);
+}

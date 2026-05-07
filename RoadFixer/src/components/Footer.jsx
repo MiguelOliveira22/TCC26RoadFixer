@@ -5,7 +5,7 @@ export default function Footer() {
   const navigate = useNavigate();
 
   const linksSaibaMais = [
-    { text: "Estatísticas", action: () => navigate('/estatisticas') },
+    { text: "Estatísticas", action: () => { window.scrollTo(0, 0); navigate('/estatisticas'); } },
     { text: "Site Concessionária", url: 'https://www.rodoviaanhanguera.com.br/' },
     { text: "Coletânea de Pesquisas Utilizadas", url: 'https://link-das-pesquisas.com' },
     { text: "ARTESP Dados Abertos", url: 'https://dadosabertos.artesp.sp.gov.br/' },

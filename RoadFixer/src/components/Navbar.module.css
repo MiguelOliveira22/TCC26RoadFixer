@@ -1,6 +1,6 @@
 .nav {
-    position: sticky;
     top: 0;
+    position: sticky;
     z-index: 20;
     display: flex;
     justify-content: space-between;
@@ -12,7 +12,7 @@
 }
 
 .logo {
-    font-size: 48px;
+    font-size: clamp(1.5rem, 1.5rem + 1vw, 3rem);
     font-weight: 600;
     cursor: pointer;
     margin: 0;
@@ -25,38 +25,8 @@
 .ul {
     display: flex;
     list-style: none;
-    gap: 2rem;
+    gap: 1rem;
     align-items: center;
     margin: 0;
     padding: 0;
-}
-
-.li {
-    cursor: pointer;
-    text-transform: uppercase;
-    font-size: 30px;
-    font-weight: 600;
-    transition: 0.3s;
-}
-
-.li:hover {
-    color: var(--laranja);
-}
-
-.button {
-    display: inline-block;
-    text-transform: uppercase;
-    background-color: var(--laranja);
-    color: white;
-    padding: 0.3rem 1.0rem;
-    border-radius: 10px;
-    font-size: 30px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: 0.3s;
-    border: none;
-}
-
-.button:hover {
-    background-color: #e67e00; /* Um laranja levemente mais escuro para o feedback de clique */
 }

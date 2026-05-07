@@ -1,12 +1,14 @@
 import { useNavigate } from "react-router-dom";
 import styles from "./Banner.module.css";
+import { pathObject } from "../Constants";
+import ScaffoldButton from "./Button/ScaffoldButton";
 
 export default function Banner({ 
   title = "SEGURANÇA NAS", 
   highlight = "RODOVIAS", 
   subtitle = "Dados em tempo real e informações cruciais sobre transportes.", 
   buttonText = "Ver Relatórios", 
-  linkTo = "/monitoramento"
+  linkTo = pathObject.children[0].path
 }) {
   const navigate = useNavigate();
 
@@ -19,12 +21,10 @@ export default function Banner({
         </h2>
         <p className={styles.subtitle}>{subtitle}</p>
         
-        <button 
-          className={styles.mainBtn} 
-          onClick={() => navigate(linkTo)}
-        >
-          {buttonText}
-        </button>
+        <ScaffoldButton value={buttonText} action={() => {
+          window.scrollTo(0, 0);
+          navigate(linkTo);
+        }} orange/>
       </div>
     </section>
   );
