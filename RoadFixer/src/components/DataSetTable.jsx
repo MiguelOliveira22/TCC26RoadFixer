@@ -3,14 +3,14 @@ import styles from "./DataSetTable.module.css";
 import ScaffoldButton from "./Button/ScaffoldButton";
 
 const datasets = [
-  "CLIMA",
-  "TOPOLOGIA",
-  "ESTRUTURA FÍSICA DA PISTA",
-  "CONJUNTO",
-  "CONJUNTO",
-  "CONJUNTO",
-  "CONJUNTO",
-  "CONJUNTO",
+  {id: 1, data: "Clima", url: ""},
+  {id: 2, data: "Topologia", url: ""},
+  {id: 3, data: "Estrutura Física Da Pista", url: ""},
+  {id: 4, data: "Conjunto", url: ""},
+  {id: 5, data: "Conjunto", url: ""},
+  {id: 6, data: "Conjunto", url: ""},
+  {id: 7, data: "Conjunto", url: ""},
+  {id: 8, data: "Conjunto", url: ""}
 ];
 
 export function DatasetTable({ isOpen, onClose }) {
@@ -36,12 +36,13 @@ export function DatasetTable({ isOpen, onClose }) {
               <th className={styles.th}>LINK</th>
           </thead>
 
-          {datasets.map((item, index) => (
-            <tr className={styles.datasetRow} key={index}>
-              <td>{item}</td>
+          {datasets.map((item) => (
+            <tr className={styles.datasetRow}>
+              <td>{item.data}</td>
               <td>
                 <ScaffoldButton
                   value = {"Detalhes"}
+                  action = {() => window.open(item.url, '_blank')}
                   orange = {false}
                 />
               </td>
