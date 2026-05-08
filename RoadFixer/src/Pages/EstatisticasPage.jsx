@@ -3,6 +3,7 @@ import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import DataCollection from "../components/DataCollection";
 
+
 export default function EstatisticasPage() {
     const position = [-15.7801, -47.9292];
     const reports = [
@@ -34,8 +35,6 @@ export default function EstatisticasPage() {
                 </div>
             </section>
 
-            <DataCollection headers={["LOCALIZAÇÃO", "STATUS", "GRAVIDADE", "LINK"]} reports={reports} idCabecalho={1}></DataCollection>
-
             <section className={styles.section}>
                 <div className={styles.header}>
                 <p className={styles.kicker}>MAPA DE RISCO CORRIGIDO</p>
@@ -56,6 +55,12 @@ export default function EstatisticasPage() {
                     </div>
                 </div>
             </section>
+
+            <DataCollection headers={["LOCALIZAÇÃO", "STATUS", "GRAVIDADE", "LINK"]} reports={reports} idCabecalho={1}></DataCollection>
+
+            <DataCollection headers={["LOCALIZAÇÃO", "STATUS", "GRAVIDADE", "LINK"]} reports={reports} idCabecalho={1}></DataCollection>
+            
+            <DataCollection headers={["LOCALIZAÇÃO", "STATUS", "GRAVIDADE", "LINK"]} reports={reports} idCabecalho={1}></DataCollection>
         </>
     );
 }
