@@ -2,7 +2,19 @@ import styles from "./EstatisticasPage.module.css";
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import DataCollection from "../components/DataCollection";
+import Graph from "../components/Graph";
 
+
+function MockedData()
+{
+    
+    let data = [];
+    for(let i = 0; i < 453; i++){
+        const randomInt = Math.random() * 10
+        data.push({"KM": String(i+1), "risk": randomInt})
+    }
+    return data
+}
 
 export default function EstatisticasPage() {
     const position = [-15.7801, -47.9292];
@@ -11,6 +23,7 @@ export default function EstatisticasPage() {
         { id: 2, data: ["BR-330 KM 012" , "1 PESSOA"  , "BAIXA" , {url: ""}]},
         { id: 3, data: ["BR-330 KM 167" , "3 PESSOAS" , "MEDIA" , {url: ""}]},
     ];
+
 
     return (
         <>
@@ -28,9 +41,12 @@ export default function EstatisticasPage() {
                             attribution='&copy; OpenStreetMap contributors'
                             />
                         </MapContainer>
-                    </div>
-                    <div className={styles.graficoLinhas}>
-                        Gráfico
+                    </div> 
+                    <div>  
+                    <Graph
+                        data={MockedData()}
+                        
+                    />
                     </div>
                 </div>
             </section>
@@ -50,8 +66,11 @@ export default function EstatisticasPage() {
                             />
                         </MapContainer>
                     </div>
-                    <div className={styles.graficoLinhas}>
-                        Gráfico
+                    <div>  
+                    <Graph
+                        data={MockedData()}
+                        
+                    />
                     </div>
                 </div>
             </section>
