@@ -1,0 +1,35 @@
+.section {
+  padding: 60px 5% 0;
+  background-color: var(--preto);
+}
+
+.header {
+  max-width: 720px;
+  margin-bottom: 24px;
+}
+
+.kicker {
+  color: var(--laranja);
+  letter-spacing: 2px;
+  font-size: 0.8rem;
+  margin-bottom: 8px;
+}
+
+.title {
+  margin: 0 0 12px;
+  font-size: 2.5rem;
+}
+
+.subtitle {
+  color: #b7b7b7;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.map-wrapper {
+  height: 600px;
+  width: 100%;
+  border-radius: 15px;
+  overflow: hidden;
+  border: 2px solid var(--cinza-escuro);
+}
