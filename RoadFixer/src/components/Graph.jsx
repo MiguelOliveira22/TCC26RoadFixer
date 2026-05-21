@@ -8,6 +8,8 @@ import {
   Tooltip,
   ResponsiveContainer
 } from 'recharts';
+import styles from './Graph.module.css'
+import FilledButton from './Button/FilledButton'
 
 export default function Graph({ data }) {
   const [kilometer, setKilometer] = useState(0);
@@ -33,44 +35,51 @@ export default function Graph({ data }) {
     filterData.length > 0 ? Object.keys(filterData[0]) : [];
 
   const updateData = () => {
-    setKilometer(Number(inputValue));
+    if(inputValue >= 0 && input <= 453)
+        setKilometer(Number(inputValue));
   };
 
   return (
     <div>
-      <p>Quilometragem:</p>
+        <div style={{ width: '100%', height: 300 }}>
+            <ResponsiveContainer>
+            <LineChart data={filterData}>
+                <CartesianGrid strokeDasharray="3 3" />
 
-      <input
-        type="number"
-        max="453"
-        min="0"
-        value={inputValue}
-        onChange={(e) => setInputValue(Number(e.target.value))}
-      />
+                <XAxis dataKey={keyNames[0]} />
 
-      <button onClick={updateData}>
-        Filtrar
-      </button>
+                <YAxis />
 
-      <div style={{ width: '100%', height: 300 }}>
-        <ResponsiveContainer>
-          <LineChart data={filterData}>
-            <CartesianGrid strokeDasharray="3 3" />
+                <Tooltip />
 
-            <XAxis dataKey={keyNames[0]} />
+                <Line
+                type="monotone"
+                dataKey={keyNames[1]}
+                stroke="#8884d8"
+                />
+            </LineChart>
+            </ResponsiveContainer>
+        </div>
+        <div className={styles.filterDiv}>
+            <div className={styles.filterInput}>
+                <p className={styles.text}>Quilometragem (± 25):</p>
 
-            <YAxis />
-
-            <Tooltip />
-
-            <Line
-              type="monotone"
-              dataKey={keyNames[1]}
-              stroke="#8884d8"
-            />
-          </LineChart>
-        </ResponsiveContainer>
-      </div>
+                <input
+                type="number"
+                max="453"
+                min="0"
+                value={inputValue}
+                className={styles.input}
+                onChange={(e) => setInputValue(Number(e.target.value))}
+                />
+            </div>
+            <div className={styles.btnFilter}>
+                <FilledButton
+                value={"Filtrar"}
+                action={updateData}
+                />
+            </div>
+        </div>
     </div>
   );
 }
