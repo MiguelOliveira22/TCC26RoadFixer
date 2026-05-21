@@ -28,11 +28,10 @@ export default function MonitoramentoPage() {
             </div>
             <div className={styles.iframeWrapper}>
               <iframe
-                src="https://www.rodoviaanhanguera.com.br/cameras-anhanguera.php"
+                src="https://srt01.logicahost.com.br/anhanguera/embed.html"
                 title="Câmeras Anhanguera 1"
                 className={styles.cameraIframe}
-                scrolling="no"
-                sandbox="allow-scripts allow-same-origin"
+                allowFullScreen
               />
             </div>
           </div>
@@ -45,11 +44,10 @@ export default function MonitoramentoPage() {
             </div>
             <div className={styles.iframeWrapper}>
               <iframe
-                src="https://www.rodoviaanhanguera.com.br/cameras-anhanguera.php" // Substitua pela URL da segunda câmera se for diferente
+                src="https://srt01.logicahost.com.br/anhanguera/embed.html" // Substitua pelo link da câmera 2 se houver um diferente
                 title="Câmeras Anhanguera 2"
                 className={styles.cameraIframe}
-                scrolling="no"
-                sandbox="allow-scripts allow-same-origin"
+                allowFullScreen
               />
             </div>
           </div>
