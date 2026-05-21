@@ -42,20 +42,9 @@ export default function EstatisticasPage() {
                             />
                         </MapContainer>
                     </div> 
-                    <div>
-                    <p>
-                        Quilometragem:
-                    </p>
-                    <input
-                    type="number" max="453" min="0">
-                    </input>
-                    <button>
-                        Filtrar
-                    </button>
                     <Graph
                         data={MockedData()}
                     />
-                    </div>
                 </div>
             </section>
 
@@ -74,21 +63,9 @@ export default function EstatisticasPage() {
                             />
                         </MapContainer>
                     </div>
-                    <div> 
-                        <p>
-                        Quilometragem:
-                    </p>
-                    <input
-                    type="number" max="453" min="0">
-                    </input>
-                    <button>
-                        Filtrar
-                    </button>
                     <Graph
                         data={MockedData()}
-                        
                     />
-                    </div>
                 </div>
             </section>
 
