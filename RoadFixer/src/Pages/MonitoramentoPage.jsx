@@ -1,14 +1,11 @@
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
-import 'leaflet/dist/leaflet.css';
 import DataCollection from "../components/DataCollection";
 import styles from "./MonitoramentoPage.module.css";
 
 export default function MonitoramentoPage() {
-  const position = [-15.7801, -47.9292];
   const reports = [
-    { id: 1, data: ["BR-330 KM 200" , "4 PESSOAS" , "ALTA" , {url: ""}]},
-    { id: 2, data: ["BR-330 KM 012" , "1 PESSOA"  , "BAIXA" , {url: ""}]},
-    { id: 3, data: ["BR-330 KM 167" , "3 PESSOAS" , "MEDIA" , {url: ""}]},
+    { id: 1, data: ["Anhanguera KM 36", "Fluxo Normal", "BAIXA", { url: "" }] },
+    { id: 2, data: ["BR-330 KM 012", "1 PESSOA", "BAIXA", { url: "" }] },
+    { id: 3, data: ["BR-330 KM 167", "3 PESSOAS", "MEDIA", { url: "" }] },
   ];
 
   return (
@@ -16,19 +13,45 @@ export default function MonitoramentoPage() {
       <section id="mapa" className={styles.section}>
         <div className={styles.header}>
           <p className={styles.kicker}>VISÃO OPERACIONAL</p>
-          <h2 className={styles.title}>MAPA <span style={{ color: 'var(--laranja)' }}>INTERATIVO</span></h2>
-          <p className={styles.subtitle}>Tela dedicada para consultar os relatos e visualizar os pontos de atenção no mapa.</p>
+          <h2 className={styles.title}>Câmeras</h2>
+          <p className={styles.subtitle}>Tela dedicada para consultar os relatos e visualizar as transmissões ao vivo.</p>
         </div>
-        <div className={styles.mapWrapper}>
-          <MapContainer center={position} zoom={4} style={{ height: '100%', width: '100%' }}>
-            <TileLayer
-              url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-              attribution='&copy; OpenStreetMap contributors'
-            />
-            <Marker position={[-23.5505, -46.6333]}>
-              <Popup>Incidente detectado em SP.</Popup>
-            </Marker>
-          </MapContainer>
+
+        {/* CONTAINER DOS DOIS VÍDEOS LADO A LADO */}
+        <div className={styles.camerasGrid}>
+          
+          {/* CÂMERA 1 */}
+          <div className={styles.videoWrapper}>
+            <div className={styles.cameraHeader}>
+              <span className={styles.liveDot}></span>
+              <h3 className={styles.cameraTitle}>Transmissão Ao Vivo - Câmera 1</h3>
+            </div>
+            <div className={styles.iframeWrapper}>
+              <iframe
+                src="https://srt01.logicahost.com.br/anhanguera/embed.html"
+                title="Câmeras Anhanguera 1"
+                className={styles.cameraIframe}
+                allowFullScreen
+              />
+            </div>
+          </div>
+
+          {/* CÂMERA 2 */}
+          <div className={styles.videoWrapper}>
+            <div className={styles.cameraHeader}>
+              <span className={styles.liveDot}></span>
+              <h3 className={styles.cameraTitle}>Transmissão Ao Vivo - Câmera 2</h3>
+            </div>
+            <div className={styles.iframeWrapper}>
+              <iframe
+                src="https://srt01.logicahost.com.br/anhanguera/embed.html" // Substitua pelo link da câmera 2 se houver um diferente
+                title="Câmeras Anhanguera 2"
+                className={styles.cameraIframe}
+                allowFullScreen
+              />
+            </div>
+          </div>
+
         </div>
       </section>
 
