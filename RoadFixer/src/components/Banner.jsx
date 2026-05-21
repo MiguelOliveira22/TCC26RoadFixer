@@ -12,6 +12,8 @@ export default function Banner({
 }) {
   const navigate = useNavigate();
 
+  
+
   return (
     <section id="home" className={styles.hero}>
       <div className={styles.content}>
