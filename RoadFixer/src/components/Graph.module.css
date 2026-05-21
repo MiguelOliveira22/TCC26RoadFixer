@@ -1,0 +1,23 @@
+.filterDiv{
+    display: flex;
+    justify-content: space-around;
+}
+
+.filterInput{
+    display: flex;
+    justify-content: space-between;
+    width: 25%;
+}
+
+.btnFilter{
+    width: 25%;
+}
+
+.text{
+    font-size: x-large;
+}
+
+.input{
+    height: 60%;
+    width: 30%;
+}

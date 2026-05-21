@@ -8,6 +8,8 @@ import {
   Tooltip,
   ResponsiveContainer
 } from 'recharts';
+import styles from './Graph.module.css'
+import FilledButton from './Button/FilledButton'
 
 export default function Graph({ data }) {
   const [kilometer, setKilometer] = useState(0);
@@ -33,44 +35,64 @@ export default function Graph({ data }) {
     filterData.length > 0 ? Object.keys(filterData[0]) : [];
 
   const updateData = () => {
-    setKilometer(Number(inputValue));
+        setKilometer(Number(inputValue));
   };
 
+  const updateInputValue = (e) =>{
+    const value = e.target.value
+
+    if(value > 453){
+        setInputValue(453)
+    }
+    else if(value < 0){
+        setInputValue(0)
+    }
+    else{
+        setInputValue(Number(value))
+    }
+  }
+
   return (
-    <div>
-      <p>Quilometragem:</p>
+    <div style={{margin: 10}}>
+        <div style={{ width: '100%', height: 300 }}>
+            <ResponsiveContainer>
+                <LineChart data={filterData}>
+                    <CartesianGrid strokeDasharray="3 3" />
 
-      <input
-        type="number"
-        max="453"
-        min="0"
-        value={inputValue}
-        onChange={(e) => setInputValue(Number(e.target.value))}
-      />
+                    <XAxis dataKey={keyNames[0]} tick={{ fontSize: 12}} />
 
-      <button onClick={updateData}>
-        Filtrar
-      </button>
+                    <YAxis domain={[0, 10]}/>
 
-      <div style={{ width: '100%', height: 300 }}>
-        <ResponsiveContainer>
-          <LineChart data={filterData}>
-            <CartesianGrid strokeDasharray="3 3" />
+                    <Tooltip />
 
-            <XAxis dataKey={keyNames[0]} />
+                    <Line
+                    type="monotone"
+                    dataKey={keyNames[1]}
+                    stroke="#8884d8"
+                    />
+                </LineChart>
+            </ResponsiveContainer>
+        </div>
+        <div className={styles.filterDiv}>
+            <div className={styles.filterInput}>
+                <p className={styles.text}>Quilometragem (± 25):</p>
 
-            <YAxis />
-
-            <Tooltip />
-
-            <Line
-              type="monotone"
-              dataKey={keyNames[1]}
-              stroke="#8884d8"
-            />
-          </LineChart>
-        </ResponsiveContainer>
-      </div>
+                <input
+                type="number"
+                max="453"
+                min="0"
+                value={inputValue}
+                className={styles.input}
+                onChange={updateInputValue}
+                />
+            </div>
+            <div className={styles.btnFilter}>
+                <FilledButton
+                value={"Filtrar"}
+                action={updateData}
+                />
+            </div>
+        </div>
     </div>
   );
 }
