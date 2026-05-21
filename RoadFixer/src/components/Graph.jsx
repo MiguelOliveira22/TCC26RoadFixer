@@ -35,29 +35,42 @@ export default function Graph({ data }) {
     filterData.length > 0 ? Object.keys(filterData[0]) : [];
 
   const updateData = () => {
-    if(inputValue >= 0 && input <= 453)
         setKilometer(Number(inputValue));
   };
 
+  const updateInputValue = (e) =>{
+    const value = e.target.value
+
+    if(value > 453){
+        setInputValue(453)
+    }
+    else if(value < 0){
+        setInputValue(0)
+    }
+    else{
+        setInputValue(Number(value))
+    }
+  }
+
   return (
-    <div>
+    <div style={{margin: 10}}>
         <div style={{ width: '100%', height: 300 }}>
             <ResponsiveContainer>
-            <LineChart data={filterData}>
-                <CartesianGrid strokeDasharray="3 3" />
+                <LineChart data={filterData}>
+                    <CartesianGrid strokeDasharray="3 3" />
 
-                <XAxis dataKey={keyNames[0]} />
+                    <XAxis dataKey={keyNames[0]} tick={{ fontSize: 12}} />
 
-                <YAxis />
+                    <YAxis domain={[0, 10]}/>
 
-                <Tooltip />
+                    <Tooltip />
 
-                <Line
-                type="monotone"
-                dataKey={keyNames[1]}
-                stroke="#8884d8"
-                />
-            </LineChart>
+                    <Line
+                    type="monotone"
+                    dataKey={keyNames[1]}
+                    stroke="#8884d8"
+                    />
+                </LineChart>
             </ResponsiveContainer>
         </div>
         <div className={styles.filterDiv}>
@@ -70,7 +83,7 @@ export default function Graph({ data }) {
                 min="0"
                 value={inputValue}
                 className={styles.input}
-                onChange={(e) => setInputValue(Number(e.target.value))}
+                onChange={updateInputValue}
                 />
             </div>
             <div className={styles.btnFilter}>
