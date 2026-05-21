@@ -26,10 +26,79 @@
   margin: 0;
 }
 
-.map-wrapper {
-  height: 600px;
-  width: 100%;
-  border-radius: 15px;
-  overflow: hidden;
+/* LAYOUT GRID: Alinha os dois vídeos lado a lado */
+.camerasGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr); /* Divide o espaço em duas colunas iguais */
+  gap: 20px; /* Espaço entre os dois blocos de vídeo */
+  margin-bottom: 50px; /* Deixa um espaço generoso antes da tabela abaixo */
+}
+
+/* Painel Geral de cada Monitor de Câmera */
+.videoWrapper {
+  background-color: #111;
   border: 2px solid var(--cinza-escuro);
+  border-radius: 15px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+}
+
+.cameraHeader {
+  display: flex;
+  align-items: center;
+  margin-bottom: 12px;
+  gap: 10px;
+}
+
+.cameraTitle {
+  color: #fff;
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 500;
+}
+
+/* Indicador Live Piscante */
+.liveDot {
+  width: 10px;
+  height: 10px;
+  background-color: #ff4d4d;
+  border-radius: 50%;
+  animation: pulse 1.5s infinite;
+}
+
+/* MÁSCARA DE RECORTE DO IFRAME */
+.iframeWrapper {
+  width: 100%;
+  height: 480px; /* Janela visível focada na área do vídeo */
+  overflow: hidden; /* Corta o menu superior e rodapé do site original */
+  position: relative;
+  border-radius: 10px;
+  background-color: #000;
+  border: 1px solid #222;
+}
+
+.cameraIframe {
+  position: absolute;
+  
+  /* Deslocamentos para centralizar os players de vídeo na sua tela */
+  top: -410px;    /* Sobe a página original para sumir com o cabeçalho/logo deles */
+  left: -2%;      /* Leve ajuste lateral para alinhar as margens */
+  width: 104%;    /* Ajusta a largura proporcionalmente */
+  height: 1900px;  /* Altura total calculada para manter o vídeo no centro */
+  
+  border: none;
+}
+
+@keyframes pulse {
+  0% { opacity: 0.4; }
+  50% { opacity: 1; }
+  100% { opacity: 0.4; }
+}
+
+/* Responsividade: Se a tela for pequena (celular), os vídeos ficam um embaixo do outro */
+@media (max-width: 900px) {
+  .camerasGrid {
+    grid-template-columns: 1fr;
+  }
 }
