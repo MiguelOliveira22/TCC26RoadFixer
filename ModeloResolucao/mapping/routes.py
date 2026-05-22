@@ -5,7 +5,7 @@ from os import path
 
 filepath = "../ConjuntosDados/"
 
-async def assignRoutes(api: FastAPI):
+def assignRoutes(api: FastAPI):
     @api.get("/")
     async def root() -> PlainTextResponse:
         return PlainTextResponse("Server Running")

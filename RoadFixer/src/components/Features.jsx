@@ -4,27 +4,28 @@ import React, { useEffect, useState } from "react";
 
 export default function Features() {
   const [ cards, setCards ] = useState([
-    { title: "Monitoramento", desc: "Câmeras ao vivo e sensores de pista 24h." },
-    { title: "Alertas", desc: "Notificações de acidentes e bloqueios imediatos." },
-    { title: "Histórico", desc: "Base de dados completa desde 2020." }
+    { title: "Monitoramento", desc: "Câmeras ao vivo e sensores de pista 24h.", action: "" },
+    { title: "Alertas", desc: "Notificações de acidentes e bloqueios imediatos.", action: "" },
+    { title: "Histórico", desc: "Base de dados completa desde 2020.", action: "" }
   ]);
-  const [ mounted, setMounted ] = useState(false);
 
   useEffect(() => {
-    async function loadNetwork() {
+    async function loadNetwork() {    
       try {
-        var network = await fetch(apiPath + "");
+        var network = await fetch(apiPath + "carddata");
 
-        if (network.ok && network.json().cards.length > 0 && mounted) {
-          setCards(network.json().cards);
+        var data = await network.json();
+        console.log(data);
+
+        if (network.ok && data.content.length > 0) {
+          setCards(data.content);
         }
       }
       catch {}
     }
 
     loadNetwork();
-    return () => { setMounted(true); };
-  });
+  }, [ ]);
 
   return (
     <section id="foco" className={styles.section}>

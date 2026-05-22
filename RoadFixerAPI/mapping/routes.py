@@ -1,21 +1,24 @@
 from fastapi import FastAPI
 from fastapi.responses import FileResponse, PlainTextResponse
-from os import path
 
-filepath = "../ConjuntosDados/"
+import json
 
-async def assignRoutesAPI(api: FastAPI):
+filepath = "./content/"
+
+def assignRoutesAPI(api: FastAPI):
     @api.get("/")
     async def root() -> PlainTextResponse:
         return PlainTextResponse("Server Running")
     
-    @api.get("/a/")
-    async def listCards():
-        return 
-    
-    @api.get("/as/")
+    @api.get("/carddata/")
     async def cardData():
-        return 
+        with open(filepath + "cards/content.json") as file:
+            return json.load(file)
+        
+    @api.get("/statsdata/")
+    async def statsData():
+        with open(filepath + "stats/content.json") as file:
+            return json.load(file)
     
     @api.get("/asd/")
     async def footerLinks():

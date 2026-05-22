@@ -4,11 +4,7 @@ from os import path
 
 filepath = "../ConjuntosDados/"
 
-async def assignRoutesDirectory(api: FastAPI):
-    @api.get("/")
-    async def root() -> PlainTextResponse:
-        return PlainTextResponse("Server Running")
-    
+def assignRoutesDirectory(api: FastAPI):    
     @api.get("/listadatasets/")
     async def listDatasets():
         return 

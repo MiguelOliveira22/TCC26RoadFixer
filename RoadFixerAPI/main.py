@@ -1,6 +1,9 @@
 from RoadFixerAPI.mapping.routes import assignRoutesAPI
-import fastapi
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi import FastAPI
 
-server = fastapi.FastAPI()
+server = FastAPI()
+
+server.add_middleware(CORSMiddleware, allow_origins=["*"])
 
 assignRoutesAPI(server)
