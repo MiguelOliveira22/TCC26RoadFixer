@@ -35,16 +35,17 @@ export default function Graph({ data }) {
     filterData.length > 0 ? Object.keys(filterData[0]) : [];
 
   const updateData = () => {
-        setKilometer(Number(inputValue));
+        setKilometer(inputValue);
   };
 
   const updateInputValue = (e) =>{
+    e.target.value = Number(e.target.value)
     const value = e.target.value
 
     if(value > 453){
         setInputValue(453)
     }
-    else if(value < 0){
+    else if(value <= 0){
         setInputValue(0)
     }
     else{
@@ -53,22 +54,24 @@ export default function Graph({ data }) {
   }
 
   return (
-    <div style={{margin: 10}}>
-        <div style={{ width: '100%', height: 300 }}>
+    <div className={styles.divGraph}>
+        <div className={styles.graph}>
             <ResponsiveContainer>
-                <LineChart data={filterData}>
-                    <CartesianGrid strokeDasharray="3 3" />
+                <LineChart data={filterData} margin={{ top: 0, right: 0, left: 10, bottom: 10 }}>
+                    <CartesianGrid strokeDasharray="3 3"/>
 
-                    <XAxis dataKey={keyNames[0]} tick={{ fontSize: 12}} />
+                    <XAxis dataKey={keyNames[0]} tick={{ fontSize: 12 }} label={{ value: 'Quilometragem', position: 'middle', offset: -10 , dy: 15}} />
 
-                    <YAxis domain={[0, 10]}/>
+                    <YAxis domain={[0, 10]} label={{ value: 'Risco', position: 'middle', offset: 0, dx: -15}} />
 
                     <Tooltip />
 
                     <Line
-                    type="monotone"
+                    type="linear"
                     dataKey={keyNames[1]}
                     stroke="#8884d8"
+                    connectNulls
+                    isAnimationActive={false}
                     />
                 </LineChart>
             </ResponsiveContainer>

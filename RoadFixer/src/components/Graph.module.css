@@ -21,3 +21,16 @@
     height: 60%;
     width: 30%;
 }
+
+.divGraph{
+    height: 38vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.graph{
+    padding: 10px;
+    width: 100%;
+    height: 300px;
+}
