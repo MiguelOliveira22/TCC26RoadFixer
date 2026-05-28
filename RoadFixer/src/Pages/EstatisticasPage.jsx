@@ -12,7 +12,7 @@ function MockedData()
     let data = [];
     for(let i = 0; i < 453; i++){
         const randomInt = Math.random() * 10
-        data.push({"KM": String(i+1), "risk": randomInt})
+        data.push({"KM": String(i+1), "risco": randomInt})
     }
     return data
 }
