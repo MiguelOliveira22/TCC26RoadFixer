@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.responses import FileResponse, PlainTextResponse
 
 import json
+import random
 
 filepath = "./content/"
 
@@ -28,3 +29,8 @@ def assignRoutesAPI(api: FastAPI):
     async def footerEmails():
         return
     
+    @api.get("/riskData/")
+    async def getRiskData():
+        risk = [random.random()*10 for _ in range(453)]
+        return json.dumps(risk)
+        
