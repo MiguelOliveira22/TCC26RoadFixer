@@ -32,5 +32,5 @@ def assignRoutesAPI(api: FastAPI):
     @api.get("/riskData/")
     async def getRiskData():
         risk = [random.random()*10 for _ in range(453)]
-        return json.dumps(risk)
+        return risk
         

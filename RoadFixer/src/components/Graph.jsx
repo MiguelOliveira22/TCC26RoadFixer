@@ -29,7 +29,7 @@ export default function Graph({ data }) {
     max = kilometer + 25;
   }
 
-  const filterData = data.slice(min, max);
+  const filterData = data ? data.slice(min, max) : [];
 
   const keyNames =
     filterData.length > 0 ? Object.keys(filterData[0]) : [];

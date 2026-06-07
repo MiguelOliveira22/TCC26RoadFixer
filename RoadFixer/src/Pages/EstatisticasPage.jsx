@@ -4,7 +4,16 @@ import 'leaflet/dist/leaflet.css';
 import DataCollection from "../components/DataCollection";
 import Graph from "../components/Graph";
 import Map from "../components/Map"
+import { useEffect, useState } from "react";
+import { apiPath } from "../Constants";
 
+async function GetRiskData()
+{
+    const res = await fetch(apiPath+"riskData/");
+    const data = await res.json();
+    const formatted = data.map((valor, index) => ({ KM: String(index + 1), risco: valor }));
+    return formatted
+}
 
 function MockedData()
 {
@@ -24,7 +33,21 @@ export default function EstatisticasPage() {
         { id: 3, data: ["BR-330 KM 167" , "3 PESSOAS" , "MEDIA" , {url: ""}]},
     ];
 
+    const [ response, setResponse ] = useState()
 
+    useEffect(() => {
+        const loadData = async () => {
+            try {
+                const data = await GetRiskData();
+                setResponse(data);
+            } catch (error) {
+             console.error(error);
+            }
+        };
+
+        loadData()
+    }, []);
+    console.log(response)
     return (
         <>
             <section className={styles.section}>
@@ -36,7 +59,7 @@ export default function EstatisticasPage() {
                 
                 <Map/>
                 <Graph
-                    data={MockedData()}
+                    data={response}
                 />
             </section>
 
@@ -48,7 +71,7 @@ export default function EstatisticasPage() {
                 </div>
                 <Map/>
                 <Graph
-                    data={MockedData()}
+                    data={response}
                 />
             </section>
 
