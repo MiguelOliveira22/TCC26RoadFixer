@@ -47,7 +47,7 @@ export default function EstatisticasPage() {
 
         loadData()
     }, []);
-    console.log(response)
+
     return (
         <>
             <section className={styles.section}>
