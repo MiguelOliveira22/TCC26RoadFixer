@@ -7,6 +7,13 @@ import Map from "../components/Map"
 import { useEffect, useState } from "react";
 import { apiPath } from "../Constants";
 
+async function getReports(){
+    const res = await fetch(apiPath+"accidentHistory/");
+    const data = await res.json();
+    const formatted = data.content.map((valor) => ({ id: valor.id, data: valor.data }));
+    return formatted
+}
+
 async function GetRiskData()
 {
     const res = await fetch(apiPath+"riskData/");
@@ -16,11 +23,20 @@ async function GetRiskData()
 }
 
 export default function EstatisticasPage() {
-    const reports = [
-        { id: 1, data: ["BR-330 KM 200" , "4 PESSOAS" , "ALTA" , {url: ""}]},
-        { id: 2, data: ["BR-330 KM 012" , "1 PESSOA"  , "BAIXA" , {url: ""}]},
-        { id: 3, data: ["BR-330 KM 167" , "3 PESSOAS" , "MEDIA" , {url: ""}]},
-    ];
+      const [reports, setReports] = useState(null)
+    
+      useEffect(() => {
+              const loadData = async () => {
+                  try {
+                      const data = await getReports();
+                      setReports(data);
+                  } catch (error) {
+                   console.error(error);
+                  }
+              };
+      
+              loadData()
+          }, []);
 
     const marks = [{position: [-22.92506, -47.08692], information: "Rodovia Anhanguera (SP-330)"}];
 
@@ -38,6 +54,14 @@ export default function EstatisticasPage() {
 
         loadData()
     }, []);
+
+    if (reports === null) {
+        return (
+          <div className={styles.loadingContainer}>
+            <p>Carregando informações...</p>
+          </div>
+        );
+      }
 
     return (
         <>

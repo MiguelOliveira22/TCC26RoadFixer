@@ -1,13 +1,38 @@
 import DataCollection from "../components/DataCollection";
 import styles from "./MonitoramentoPage.module.css";
+import { useEffect, useState } from "react";
+import { apiPath } from "../Constants";
+
+async function getReports(){
+      const res = await fetch(apiPath+"accidentHistory/");
+      const data = await res.json();
+      const formatted = data.content.map((valor) => ({ id: valor.id, data: valor.data }));
+      return formatted
+}
 
 export default function MonitoramentoPage() {
-  const reports = [
-    { id: 1, data: ["Anhanguera KM 36", "Fluxo Normal", "BAIXA", { url: "" }] },
-    { id: 2, data: ["BR-330 KM 012", "1 PESSOA", "BAIXA", { url: "" }] },
-    { id: 3, data: ["BR-330 KM 167", "3 PESSOAS", "MEDIA", { url: "" }] },
-  ];
+  const [reports, setReports] = useState(null)
 
+  useEffect(() => {
+          const loadData = async () => {
+              try {
+                  const data = await getReports();
+                  setReports(data);
+              } catch (error) {
+               console.error(error);
+              }
+          };
+  
+          loadData()
+      }, []);
+  
+  if (reports === null) {
+    return (
+      <div className={styles.loadingContainer}>
+        <p>Carregando informações...</p>
+      </div>
+    );
+  }
   return (
     <>
       <section id="mapa" className={styles.section}>
