@@ -5,12 +5,6 @@ import ScaffoldButton from "./Button/ScaffoldButton";
 export function DatasetTable({ isOpen, onClose, headers, title, datasets  }) {
   if (!isOpen) return null;
 
-  datasets.map((item) => {
-      item.data.map((obj) =>{
-        console.log(typeof(obj))
-      })
-  })  
-
   return (
     <div className={styles.datasetOverlay} onClick={onClose}>
       <div
