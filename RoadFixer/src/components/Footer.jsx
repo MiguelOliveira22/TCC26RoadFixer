@@ -19,6 +19,11 @@ export default function Footer() {
     "matheuscalopsita36@gmail.com"
   ];
 
+  // Função para abrir o cliente de e-mail
+  const handleEmailClick = (email) => {
+    window.location.href = `mailto:${email}`;
+  };
+
   return (
     <footer className={styles.footer}>
       <div className={styles.topSection}>
@@ -56,7 +61,14 @@ export default function Footer() {
           <h3 className={styles.columnTitle}>CONTATO</h3>
           <div className={styles.emailList}>
             {emails.map((email, index) => (
-              <span key={index} className={styles.email}>{email}</span>
+              <span 
+                key={index} 
+                className={styles.email} 
+                onClick={() => handleEmailClick(email)}
+                style={{ cursor: 'pointer' }} // Garante que o cursor de "mãozinha" apareça ao passar o mouse
+              >
+                {email}
+              </span>
             ))}
           </div>
         </div>
