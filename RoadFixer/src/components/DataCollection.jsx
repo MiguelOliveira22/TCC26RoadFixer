@@ -3,23 +3,13 @@ import ScaffoldButton from "./Button/ScaffoldButton";
 import { DatasetTable } from "../components/DataSetTable";
 import { useState } from "react";
 
-export default function DataCollection({ headers, reports, idCabecalho }) {
-  const cabecalhos = [
-    (<span>CONJUNTO DE <span className={styles.highlight}>DADOS UTILIZADOS</span></span>),
-    (<span>HISTÓRICO DE <span className={styles.highlight}>ACIDENTES</span></span>)
-  ];
-
-  const buttons = [
-    "VER MAIS CONJUNTOS DE DADOS",
-    "VER MAIS DADOS HISTÓRICOS"
-  ];
-
+export default function DataCollection({ headers, reports, title, buttonText }) {
   const [openPopup, setOpenPopup] = useState(false);  
 
   return (
     <section id="relatos" className={styles.section}>
       <h2 className={styles.title}>
-        {cabecalhos[idCabecalho]}
+        {title}
       </h2>
       
       <div className={styles.tableWrapper}>
@@ -52,13 +42,16 @@ export default function DataCollection({ headers, reports, idCabecalho }) {
           </tbody>
         </table>
         <ScaffoldButton
-          value = { buttons[idCabecalho] }
+          value = { buttonText }
           action= {() => setOpenPopup(true)}
           orange = {false}
         />
         <DatasetTable
           isOpen={openPopup}
           onClose={() => setOpenPopup(false)}
+          headers={headers}
+          title={title}
+          datasets={reports}
         />
       </div>
     </section>

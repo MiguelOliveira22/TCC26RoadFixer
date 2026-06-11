@@ -16,7 +16,7 @@ export default function HomePage() {
       <Banner />
       <Stats />
       <Features />
-      <DataCollection headers={["DADO", "LINK"]} reports={reports} idCabecalho={0} />
+      <DataCollection headers={["DADO", "LINK"]} reports={reports} title="VER MAIS CONJUNTOS DE DADOS" buttonText={(<span>CONJUNTO DE <span>DADOS UTILIZADOS</span></span>)} />
     </main>
   );
 }

@@ -15,17 +15,6 @@ async function GetRiskData()
     return formatted
 }
 
-function MockedData()
-{
-    
-    let data = [];
-    for(let i = 0; i < 453; i++){
-        const randomInt = Math.random() * 10
-        data.push({"KM": String(i+1), "risco": randomInt})
-    }
-    return data
-}
-
 export default function EstatisticasPage() {
     const reports = [
         { id: 1, data: ["BR-330 KM 200" , "4 PESSOAS" , "ALTA" , {url: ""}]},
@@ -75,7 +64,7 @@ export default function EstatisticasPage() {
                 />
             </section>
 
-            <DataCollection headers={["LOCALIZAÇÃO", "STATUS", "GRAVIDADE", "LINK"]} reports={reports} idCabecalho={1}></DataCollection>
+            <DataCollection headers={["LOCALIZAÇÃO", "STATUS", "GRAVIDADE", "LINK"]} reports={reports} title="VER MAIS DADOS HISTÓRICOS" buttonText={(<span>HISTÓRICO DE <span>ACIDENTES</span></span>)}></DataCollection>
 
         </>
     );

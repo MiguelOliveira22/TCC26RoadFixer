@@ -57,9 +57,9 @@
 
 .datasetHeader,
 .datasetRow {
-  display: grid;
-  grid-template-columns: 1fr 180px;
-  align-items: center;
+  display: flex;
+  align-items: left;
+  justify-content: space-around;
 
   padding: 10px 0;
 }
@@ -99,6 +99,10 @@
     text-align: left;
     color: #888;
     font-size: 0.8rem;
+}
+
+.divTable{
+  width: 100%;
 }
 
 @keyframes datasetFade {
