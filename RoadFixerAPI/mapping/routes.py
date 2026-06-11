@@ -33,4 +33,9 @@ def assignRoutesAPI(api: FastAPI):
     async def getRiskData():
         risk = [random.random()*10 for _ in range(453)]
         return risk
+    
+    @api.get("/accidentHistory")
+    async def getAccidentHistory():
+        with open(filepath + "accident-history/content.json") as file:
+            return json.load(file)
         
