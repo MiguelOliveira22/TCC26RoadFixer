@@ -2,14 +2,39 @@ import Banner from "../components/Banner";
 import Stats from "../components/Stats";
 import Features from "../components/Features";
 import DataCollection from "../components/DataCollection";
+import { useEffect, useState } from "react";
+import { apiPath } from "../Constants";
+
+async function getReports(){
+      const res = await fetch(apiPath+"listadatasets/");
+      const data = await res.json();
+      const formatted = data.content.map((valor) => ({ id: valor.id, data: valor.data }));
+      return formatted
+}
 
 export default function HomePage() {
-  // Não temos url para os tipos de dados que ainda coletaremos (solução temporaria)
-  const reports = [
-    { id: 1, data: ["Clima e Condições Meteorológicas" , {url: "https://portal.inmet.gov.br/"}]},
-    { id: 2, data: ["Topologia e Georreferenciamento de Rodovias" , {url: "https://dados.gov.br/dados/conjuntos-dados/sistema-nacional-de-viacao-snv"}]},
-    { id: 3, data: ["Estrutura Física e Condição de Pistas" , {url: "https://www.gov.br/dnit/pt-br/assuntos/planejamento-e-pesquisa/pesquisa-de-rodovias"}]},
-  ];
+  const [reports, setReports] = useState(null)
+
+    useEffect(() => {
+            const loadData = async () => {
+                try {
+                    const data = await getReports();
+                    setReports(data);
+                } catch (error) {
+                 console.error(error);
+                }
+            };
+    
+            loadData()
+        }, []);
+
+  if (reports === null) {
+      return (
+        <div>
+          <p>Carregando informações...</p>
+        </div>
+      );
+    }
 
   return (
     <main style={{ backgroundColor: 'var(--preto)' }}>

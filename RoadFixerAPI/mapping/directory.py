@@ -4,7 +4,7 @@ from fastapi import FastAPI
 from fastapi.responses import FileResponse
 from os import path
 
-filepath = "../ConjuntosDados/"
+filepath = "./content/"
 
 def assignRoutesDirectory(api: FastAPI):    
     @api.get("/listadatasets/")

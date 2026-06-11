@@ -57,7 +57,7 @@ export default function EstatisticasPage() {
 
     if (reports === null) {
         return (
-          <div className={styles.loadingContainer}>
+          <div>
             <p>Carregando informações...</p>
           </div>
         );

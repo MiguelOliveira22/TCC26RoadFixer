@@ -28,7 +28,7 @@ export default function MonitoramentoPage() {
   
   if (reports === null) {
     return (
-      <div className={styles.loadingContainer}>
+      <div>
         <p>Carregando informações...</p>
       </div>
     );
