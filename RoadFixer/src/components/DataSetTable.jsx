@@ -6,8 +6,10 @@ export function DatasetTable({ isOpen, onClose, headers, title, datasets  }) {
   if (!isOpen) return null;
 
   datasets.map((item) => {
-      
-  })
+      item.data.map((obj) =>{
+        console.log(typeof(obj))
+      })
+  })  
 
   return (
     <div className={styles.datasetOverlay} onClick={onClose}>
@@ -38,7 +40,7 @@ export function DatasetTable({ isOpen, onClose, headers, title, datasets  }) {
             <tr className={styles.datasetRow}>
               {
                 item.data.map((string) =>
-                  string != "url" ?
+                  typeof(string) == "string" ?
                   <div className={styles.divTable}>
                     <td>{string}</td>
                   </div>
@@ -46,7 +48,7 @@ export function DatasetTable({ isOpen, onClose, headers, title, datasets  }) {
                   <div className={styles.divTable}>
                     <ScaffoldButton
                     value = {"Detalhes"}
-                    action = {() => window.open(item.url, '_blank')}
+                    action = {() => window.open(string.url, '_blank')}
                     orange = {false}
                     />
                 </div>
