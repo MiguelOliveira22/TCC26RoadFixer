@@ -22,6 +22,8 @@ export default function EstatisticasPage() {
         { id: 3, data: ["BR-330 KM 167" , "3 PESSOAS" , "MEDIA" , {url: ""}]},
     ];
 
+    const marks = [{position: [-22.92506, -47.08692], information: "Rodovia Anhanguera (SP-330)"}];
+
     const [ response, setResponse ] = useState()
 
     useEffect(() => {
@@ -46,7 +48,9 @@ export default function EstatisticasPage() {
                     <p className={styles.subtitle}>Tela dedicada para consultar os relatos e visualizar os pontos de atenção no mapa.</p>
                 </div>
                 
-                <Map/>
+                <Map
+                marks={marks}
+                />
                 <Graph
                     data={response}
                 />
