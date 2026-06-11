@@ -1,3 +1,4 @@
+from mapping.directory import assignRoutesDirectory
 from mapping.routes import assignRoutesAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import FastAPI
@@ -12,3 +13,4 @@ server.add_middleware(
 )
 
 assignRoutesAPI(server)
+assignRoutesDirectory(server)

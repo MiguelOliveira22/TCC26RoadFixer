@@ -1,0 +1,73 @@
+.section {
+    padding: 60px 5%;
+    background-color: var(--preto);
+}
+
+.title {
+    font-size: 2rem;
+    margin-bottom: 30px;
+    color: #fff;
+}
+
+.highlight {
+    color: var(--laranja);
+}
+
+.tableWrapper {
+    overflow-x: auto; /* Garante que a tabela não quebre em celulares */
+}
+
+.table {
+    width: 100%;
+    border-collapse: collapse;
+    color: #fff;
+    margin-bottom: 20px;
+}
+
+.th {
+    text-align: left;
+    padding: 15px;
+    border-bottom: 2px solid var(--laranja);
+    color: #888;
+    font-size: 0.8rem;
+}
+
+.tr {
+    border-bottom: 1px solid #222;
+    transition: 0.3s;
+}
+
+.tr:hover {
+    background-color: rgba(255, 255, 255, 0.03);
+}
+
+.td {
+    padding: 15px;
+}
+
+.badge {
+    font-size: 0.8rem;
+    font-weight: bold;
+    color: #fff;
+}
+
+/* Classe condicional para quando o status for Bloqueado */
+.blocked {
+    color: var(--laranja);
+}
+
+.miniBtn {
+    display: inline-block;
+    background-color: transparent;
+    border: 1px solid #444;
+    color: #fff;
+    padding: 5px 10px;
+    cursor: pointer;
+    font-size: 0.7rem;
+    transition: 0.3s;
+}
+
+.miniBtn:hover {
+    border-color: var(--laranja);
+    color: var(--laranja);
+}

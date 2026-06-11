@@ -1,0 +1,99 @@
+.footer {
+    background-color: var(--cinza-escuro);
+    color: white;
+    padding: 4rem 5% 2rem;
+    border-top: 1px solid #222;
+}
+
+.topSection {
+    display: flex;
+    justify-content: space-between;
+    align-items: stretch;
+    gap: 20px;
+    margin-bottom: 3rem;
+    flex-wrap: wrap;
+}
+
+.column {
+    flex: 1;
+    min-width: 250px;
+    padding: 0 15px;
+}
+
+.divider {
+    width: 1px;
+    background-color: #333;
+    margin: 10px 0;
+}
+
+/* Responsividade: remove o divisor em ecrãs pequenos */
+@media (max-width: 768px) {
+    .divider {
+        display: none;
+    }
+
+    .topSection {
+        flex-direction: column;
+        gap: 40px;
+    }
+}
+
+.columnTitle {
+    font-size: 1.1rem;
+    font-weight: bold;
+    margin-bottom: 1rem;
+    letter-spacing: 1px;
+}
+
+.highlight {
+    color: var(--laranja);
+}
+
+.objectiveText {
+    font-size: 0.9rem;
+    color: #aaa;
+    line-height: 1.6;
+}
+
+.list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.listItem {
+    font-size: 0.9rem;
+    color: #aaa;
+    cursor: pointer;
+    transition: color 0.3s;
+}
+
+.listItem:hover {
+    color: var(--laranja);
+    text-decoration: underline;
+}
+
+.emailList {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.email {
+    font-size: 0.9rem;
+    color: #aaa;
+}
+
+.bottomSection {
+    border-top: 1px solid #333;
+    padding-top: 2rem;
+    text-align: center;
+}
+
+.copyright {
+    font-size: 0.8rem;
+    color: #555;
+}

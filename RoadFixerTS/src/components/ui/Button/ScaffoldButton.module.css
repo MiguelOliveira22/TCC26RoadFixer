@@ -1,0 +1,24 @@
+.scaffoldButton {
+    border: 3px solid var(--branco);
+    width: 100%;
+}
+
+.scaffoldButtonOrange {
+    color: var(--laranja);
+    border-color: solid var(--laranja);
+}
+
+.scaffoldButtonOrange:hover {
+    color: #e67e00; /* Um laranja levemente mais escuro para o feedback de clique */
+    border-color: solid #e67e00;
+}
+
+.scaffoldButtonWhite {
+    color: var(--branco);
+    border-color: solid var(--branco);
+}
+
+.scaffoldButtonWhite:hover {
+    color: rgb(182, 182, 182);
+    border-color: solid rgb(182, 182, 182);
+}

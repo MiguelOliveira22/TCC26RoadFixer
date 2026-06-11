@@ -1,0 +1,11 @@
+.container {
+    padding: 60px 5%;
+    background-color: var(--preto);
+}
+
+.grid {
+    display: grid;
+    /* O repeat(auto-fit) garante que os cards se ajustem sozinhos ao tamanho da tela */
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+}

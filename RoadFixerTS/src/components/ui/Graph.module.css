@@ -1,0 +1,36 @@
+.filterDiv{
+    display: flex;
+    justify-content: space-around;
+}
+
+.filterInput{
+    display: flex;
+    justify-content: space-between;
+    width: 25%;
+}
+
+.btnFilter{
+    width: 25%;
+}
+
+.text{
+    font-size: x-large;
+}
+
+.input{
+    height: 60%;
+    width: 30%;
+}
+
+.divGraph{
+    height: 38vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.graph{
+    padding: 10px;
+    width: 100%;
+    height: 300px;
+}

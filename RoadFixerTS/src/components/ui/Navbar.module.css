@@ -1,0 +1,32 @@
+.nav {
+    top: 0;
+    position: sticky;
+    z-index: 20;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 5%;
+    background-color: var(--cinza-escuro);
+    border-bottom: 2px solid var(--laranja);
+    color: white;
+}
+
+.logo {
+    font-size: clamp(1.5rem, 1.5rem + 1vw, 3rem);
+    font-weight: 600;
+    cursor: pointer;
+    margin: 0;
+}
+
+.highlight {
+    color: var(--laranja);
+}
+
+.ul {
+    display: flex;
+    list-style: none;
+    gap: 1rem;
+    align-items: center;
+    margin: 0;
+    padding: 0;
+}

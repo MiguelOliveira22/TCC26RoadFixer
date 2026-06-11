@@ -1,0 +1,12 @@
+.filledButton {
+    background-color: var(--laranja);
+    border: 2px solid var(--laranja);
+    box-shadow: 4px 4px 0px var(--laranja);
+    width: 100%;
+}
+
+.filledButton:hover {
+    color: var(--branco);
+    box-shadow: 2px 2px 0px var(--laranja);
+    transform: translate(2px, 2px); /* Move o botão para "encaixar" na sombra */
+}
