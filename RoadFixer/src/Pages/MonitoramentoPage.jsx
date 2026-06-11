@@ -55,7 +55,7 @@ export default function MonitoramentoPage() {
         </div>
       </section>
 
-      <DataCollection headers={["LOCALIZAÇÃO", "STATUS", "GRAVIDADE", "LINK"]} reports={reports} idCabecalho={1}></DataCollection>
+      <DataCollection headers={["LOCALIZAÇÃO", "STATUS", "GRAVIDADE", "LINK"]} reports={reports} title="HISTÓRICO" buttonText={(<span>VER HISTÓRICO</span>)}></DataCollection>
     </>
   );
 }

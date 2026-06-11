@@ -64,7 +64,7 @@ export default function EstatisticasPage() {
                 />
             </section>
 
-            <DataCollection headers={["LOCALIZAÇÃO", "STATUS", "GRAVIDADE", "LINK"]} reports={reports} title="VER MAIS DADOS HISTÓRICOS" buttonText={(<span>HISTÓRICO DE <span>ACIDENTES</span></span>)}></DataCollection>
+            <DataCollection headers={["LOCALIZAÇÃO", "STATUS", "GRAVIDADE", "LINK"]} reports={reports} title="DADOS HISTÓRICOS" buttonText={(<span>VER MAIS DADOS HISTÓRICOS</span>)}></DataCollection>
 
         </>
     );
