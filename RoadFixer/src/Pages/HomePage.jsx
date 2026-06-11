@@ -18,7 +18,11 @@ export default function HomePage() {
     useEffect(() => {
             const loadData = async () => {
                 try {
-                    const data = await getReports();
+                    var data = await getReports();
+                    data.forEach((x) => {
+                      x.data[1].url = x.data[1].url.replace("$server/", apiPath)
+                      console.log(x.data[1].url)
+                    })
                     setReports(data);
                 } catch (error) {
                  console.error(error);

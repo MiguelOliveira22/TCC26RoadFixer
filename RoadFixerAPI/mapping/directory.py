@@ -15,7 +15,7 @@ def assignRoutesDirectory(api: FastAPI):
     @api.get("/datasets/")
     async def sendDataset() -> FileResponse:
         return FileResponse(
-            path=path.join(filepath, "conjuntos"),
+            path=path.join(filepath, "conjuntos", "content.json"),
             filename="content.json",
             media_type="application/octet_stream"
         )
