@@ -1,0 +1,16 @@
+{
+    "content": [
+        {
+            "id": 1,
+            "data": [ "Acidentes Ocorridos", { "url": "$server/datasets" } ]
+        },
+        {
+            "id": 2,
+            "data": [ "Radares Documentados", { "url": "$server/datasets" } ]
+        },
+        {
+            "id": 3,
+            "data": [ "Focos de Acidentes", { "url": "$server/datasets" } ]
+        }
+    ]
+}
