@@ -38,7 +38,7 @@ export default function MonitoramentoPage() {
       <section id="mapa" className={styles.section}>
         <div className={styles.header}>
           <p className={styles.kicker}>VISÃO OPERACIONAL</p>
-          <h2 className={styles.title}>Câmeras</h2>
+          <h2 className={styles.title}>Câmera</h2>
           <p className={styles.subtitle}>Tela dedicada para consultar os relatos e visualizar as transmissões ao vivo.</p>
         </div>
 
@@ -60,23 +60,6 @@ export default function MonitoramentoPage() {
               />
             </div>
           </div>
-
-          {/* CÂMERA 2 */}
-          <div className={styles.videoWrapper}>
-            <div className={styles.cameraHeader}>
-              <span className={styles.liveDot}></span>
-              <h3 className={styles.cameraTitle}>Transmissão Ao Vivo - Câmera 2</h3>
-            </div>
-            <div className={styles.iframeWrapper}>
-              <iframe
-                src="https://srt01.logicahost.com.br/anhanguera/embed.html" // Substitua pelo link da câmera 2 se houver um diferente
-                title="Câmeras Anhanguera 2"
-                className={styles.cameraIframe}
-                allowFullScreen
-              />
-            </div>
-          </div>
-
         </div>
       </section>
 
