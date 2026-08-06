@@ -1,12 +1,25 @@
 .filledButton {
     background-color: var(--laranja);
     border: 2px solid var(--laranja);
-    box-shadow: 4px 4px 0px var(--laranja);
-    width: 100%;
+    color: var(--branco);
+    
+    font-size: 1.3rem;
+    padding: 0.35rem 0.85rem;
+    border-radius: 8px;
+    
+    box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.15); /* Sombra suave para a base */
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
 }
 
 .filledButton:hover {
+    background-color: #ff8c00;
+    border-color: #ff8c00;
     color: var(--branco);
-    box-shadow: 2px 2px 0px var(--laranja);
-    transform: translate(2px, 2px); /* Move o botão para "encaixar" na sombra */
+    
+    /* Move o botão PARA CIMA (valor negativo no Y) */
+    transform: translateY(-1px); 
+    
+    /* Aumenta a sombra projetada para dar a impressão de que o botão subiu */
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.25); 
 }

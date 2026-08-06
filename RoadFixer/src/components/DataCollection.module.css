@@ -1,73 +1,76 @@
 .section {
-    padding: 60px 5%;
-    background-color: var(--preto);
+  padding: 30px 0;
+  background-color: transparent;
+  width: 100%;
 }
 
 .title {
-    font-size: 2rem;
-    margin-bottom: 30px;
-    color: #fff;
-}
-
-.highlight {
-    color: var(--laranja);
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin-bottom: 20px;
+  color: #fff;
+  letter-spacing: 0.5px;
 }
 
 .tableWrapper {
-    overflow-x: auto; /* Garante que a tabela não quebre em celulares */
+  overflow-x: auto;
+  width: 100%;
 }
 
+/* Tabela com bordas estilizadas e delimitadas */
 .table {
-    width: 100%;
-    border-collapse: collapse;
-    color: #fff;
-    margin-bottom: 20px;
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  color: #e0e0e0;
+  margin-bottom: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  overflow: hidden;
+  background-color: var(--cinza-escuro, #161616);
 }
 
 .th {
-    text-align: left;
-    padding: 15px;
-    border-bottom: 2px solid var(--laranja);
-    color: #888;
-    font-size: 0.8rem;
+  text-align: left;
+  padding: 14px 18px;
+  background-color: rgba(0, 0, 0, 0.4);
+  border-bottom: 2px solid var(--laranja, #ff7300);
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
+  color: var(--laranja, #ff7300);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+.th:last-child {
+  border-right: none;
 }
 
 .tr {
-    border-bottom: 1px solid #222;
-    transition: 0.3s;
+  transition: background-color 0.2s ease;
 }
 
 .tr:hover {
-    background-color: rgba(255, 255, 255, 0.03);
+  background-color: rgba(255, 115, 0, 0.04);
 }
 
 .td {
-    padding: 15px;
+  padding: 14px 18px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  border-right: 1px solid rgba(255, 255, 255, 0.05);
+  font-size: 0.85rem;
 }
 
-.badge {
-    font-size: 0.8rem;
-    font-weight: bold;
-    color: #fff;
+.td:last-child {
+  border-right: none;
 }
 
-/* Classe condicional para quando o status for Bloqueado */
-.blocked {
-    color: var(--laranja);
+.tr:last-child .td {
+  border-bottom: none;
 }
 
-.miniBtn {
-    display: inline-block;
-    background-color: transparent;
-    border: 1px solid #444;
-    color: #fff;
-    padding: 5px 10px;
-    cursor: pointer;
-    font-size: 0.7rem;
-    transition: 0.3s;
-}
-
-.miniBtn:hover {
-    border-color: var(--laranja);
-    color: var(--laranja);
+.buttonContainer {
+  display: flex;
+  justify-content: flex-start;
+  margin-top: 12px;
 }

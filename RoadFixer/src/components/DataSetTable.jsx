@@ -1,8 +1,7 @@
-// DataSetTable.jsx
 import styles from "./DataSetTable.module.css";
 import ScaffoldButton from "./Button/ScaffoldButton";
 
-export function DatasetTable({ isOpen, onClose, headers, title, datasets  }) {
+export function DatasetTable({ isOpen, onClose, headers, title, datasets }) {
   if (!isOpen) return null;
 
   return (
@@ -15,45 +14,41 @@ export function DatasetTable({ isOpen, onClose, headers, title, datasets  }) {
           ← VOLTAR
         </button>
 
-        <h1 className={styles.datasetTitle}>
-          {title}
-        </h1>
+        <h1 className={styles.datasetTitle}>{title}</h1>
 
-        <table className={styles.datasetTable}>
-          <thead className={styles.datasetHeader}>
-            {
-              headers.map((header) => (
-                <div className={styles.divTable}>
-                  <th className={styles.th}> {header} </th>
-                </div>
-              ))
-            }
-          </thead>
-
-          {datasets.map((item) => (
-            <tr className={styles.datasetRow}>
-              {
-                item.data.map((string) =>
-                  typeof(string) == "string" ?
-                  <div className={styles.divTable}>
-                    <td>{string}</td>
-                  </div>
-                  :
-                  <div className={styles.divTable}>
-                    <ScaffoldButton
-                    value = {"Detalhes"}
-                    action = {() => window.open(string.url, '_blank')}
-                    orange = {false}
-                    />
-                </div>
-                )
-              }
-              <td>
-                
-              </td>
-            </tr>
-          ))}
-        </table>
+        <div className={styles.tableScroll}>
+          <table className={styles.datasetTable}>
+            <thead>
+              <tr className={styles.datasetHeader}>
+                {headers.map((header, index) => (
+                  <th key={index} className={styles.th}>
+                    {header}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {datasets.map((item) => (
+                <tr key={item.id} className={styles.datasetRow}>
+                  {item.data.map((dt, idx) => (
+                    <td key={idx} className={styles.td}>
+                      {typeof dt === "string" ? (
+                        dt
+                      ) : (
+                        <ScaffoldButton
+                          value="Detalhes"
+                          action={() => window.open(dt.url, "_blank")}
+                          orange={false}
+                          small={true}
+                        />
+                      )}
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );

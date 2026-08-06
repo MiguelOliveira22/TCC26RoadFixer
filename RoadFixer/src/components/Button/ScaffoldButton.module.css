@@ -1,24 +1,69 @@
 .scaffoldButton {
-    border: 3px solid var(--branco);
-    width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background-color: transparent;
+  border-radius: 6px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  text-transform: uppercase;
+  user-select: none;
+  box-sizing: border-box;
 }
 
+/* Tamanho Padrão */
+.regular {
+  width: 100%;
+  padding: 12px 24px;
+  font-size: 0.9rem;
+}
+
+/* Tamanho Compacto (Usado dentro de tabelas e ações rápidas) */
+.small {
+  width: fit-content;
+  padding: 6px 14px;
+  font-size: 0.75rem;
+  border-radius: 4px;
+}
+
+/* VARIANTE LARANJA */
 .scaffoldButtonOrange {
-    color: var(--laranja);
-    border-color: solid var(--laranja);
+  color: var(--laranja, #ff7300);
+  border: 1.5px solid var(--laranja, #ff7300);
+  background-color: rgba(255, 115, 0, 0.05);
 }
 
 .scaffoldButtonOrange:hover {
-    color: #e67e00; /* Um laranja levemente mais escuro para o feedback de clique */
-    border-color: solid #e67e00;
+  background-color: var(--laranja, #ff7300);
+  color: #ffffff;
+  border-color: var(--laranja, #ff7300);
+  box-shadow: 0 4px 14px rgba(255, 115, 0, 0.35);
+  transform: translateY(-1px);
 }
 
+.scaffoldButtonOrange:active {
+  transform: translateY(0);
+  box-shadow: none;
+}
+
+/* VARIANTE BRANCA / NEUTRA */
 .scaffoldButtonWhite {
-    color: var(--branco);
-    border-color: solid var(--branco);
+  color: #ffffff;
+  border: 1.5px solid rgba(255, 255, 255, 0.3);
+  background-color: rgba(255, 255, 255, 0.03);
 }
 
 .scaffoldButtonWhite:hover {
-    color: rgb(182, 182, 182);
-    border-color: solid rgb(182, 182, 182);
+  border-color: var(--laranja, #ff7300);
+  color: var(--laranja, #ff7300);
+  background-color: rgba(255, 115, 0, 0.08);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  transform: translateY(-1px);
+}
+
+.scaffoldButtonWhite:active {
+  transform: translateY(0);
+  box-shadow: none;
 }

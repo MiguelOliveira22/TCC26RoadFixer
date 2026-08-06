@@ -1,99 +1,295 @@
-.section {
-  padding: 60px 5% 0;
-  background-color: var(--preto);
+.mainContainer {
+  background-color: var(--preto, #0d0d0d);
+  min-height: 100vh;
+  width: 100%;
 }
 
+.section {
+  padding: 30px 2% 50px;
+  max-width: 1800px;
+  margin: 0 auto;
+}
+
+/* --- CABEÇALHO --- */
 .header {
-  max-width: 720px;
+  max-width: 900px;
   margin-bottom: 24px;
 }
 
 .kicker {
-  color: var(--laranja);
-  letter-spacing: 2px;
-  font-size: 0.8rem;
-  margin-bottom: 8px;
+  color: var(--laranja, #ff7300);
+  letter-spacing: 2.5px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  display: block;
+  margin-bottom: 6px;
 }
 
 .title {
-  margin: 0 0 12px;
-  font-size: 2.5rem;
+  margin: 0 0 8px;
+  font-size: clamp(1.8rem, 1.5rem + 1vw, 2.4rem);
+  color: #ffffff;
+  font-weight: 700;
+}
+
+.highlight {
+  color: var(--laranja, #ff7300);
 }
 
 .subtitle {
-  color: #b7b7b7;
-  line-height: 1.6;
+  color: #a0a0a0;
+  line-height: 1.5;
+  font-size: 0.95rem;
   margin: 0;
 }
 
-/* LAYOUT GRID: Alinha os dois vídeos lado a lado */
-.camerasGrid {
+/* --- CARDS KPI (ESTATÍSTICAS) --- */
+.kpiGrid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr); /* Duas colunas iguais */
-  gap: 20px; /* Espaço entre os vídeos */
-  margin-bottom: 50px; /* Espaço antes da tabela */
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px;
+  margin-bottom: 28px;
 }
 
-/* Painel de cada Câmera */
-.videoWrapper {
-  background-color: #111;
-  border: 2px solid var(--cinza-escuro);
-  border-radius: 15px;
-  padding: 20px;
+.kpiCard {
+  background: var(--cinza-escuro, #161616);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-left: 4px solid var(--laranja, #ff7300);
+  border-radius: 8px;
+  padding: 1rem 1.25rem;
   display: flex;
   flex-direction: column;
+  gap: 4px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.kpiCard:hover {
+  border-color: var(--laranja, #ff7300);
+  transform: translateY(-2px);
+}
+
+.kpiLabel {
+  font-size: 0.75rem;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.kpiValue {
+  font-size: 1.5rem;
+  color: #fff;
+  font-weight: 700;
+}
+
+.kpiStatusAlert {
+  font-size: 0.75rem;
+  color: #ff4d4d;
+  font-weight: 600;
+}
+
+.kpiStatusGood {
+  font-size: 0.75rem;
+  color: #4dff88;
+  font-weight: 600;
+}
+
+/* --- SEÇÃO DA CÂMERA (AJUSTADA HORIZONTALMENTE) --- */
+.camerasSection {
+  margin-bottom: 36px;
+}
+
+.sectionTitleRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.sectionTitle {
+  color: #fff;
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.liveBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background-color: rgba(255, 77, 77, 0.1);
+  border: 1px solid rgba(255, 77, 77, 0.3);
+  color: #ff4d4d;
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+/* Container de vídeo reduzido na largura e centralizado */
+.singleVideoWrapper {
+  background-color: var(--cinza-escuro, #161616);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  max-width: 900px; /* Largura máxima reduzida para eliminar bordas pretas esticadas */
+  margin: 0 auto; /* Centraliza a câmera na tela */
+  box-sizing: border-box;
 }
 
 .cameraHeader {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   margin-bottom: 12px;
-  gap: 10px;
+}
+
+.cameraInfo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
 .cameraTitle {
   color: #fff;
   margin: 0;
-  font-size: 1.2rem;
-  font-weight: 500;
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.2;
 }
 
-/* Indicador Vermelho Piscante */
+.cameraLocation {
+  font-size: 0.75rem;
+  color: #888;
+}
+
+.kmBadge {
+  font-size: 0.75rem;
+  color: var(--laranja, #ff7300);
+  background: rgba(255, 115, 0, 0.1);
+  border: 1px solid rgba(255, 115, 0, 0.3);
+  padding: 0.25rem 0.65rem;
+  border-radius: 6px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
 .liveDot {
-  width: 10px;
-  height: 10px;
+  width: 8px;
+  height: 8px;
   background-color: #ff4d4d;
   border-radius: 50%;
+  box-shadow: 0 0 8px #ff4d4d;
   animation: pulse 1.5s infinite;
+  flex-shrink: 0;
 }
 
-/* CONTAINER DO PLAYER (PROPORÇÃO FIXA 16:9) */
+/* Player em formato 16:9 perfeito */
 .iframeWrapper {
   width: 100%;
-  aspect-ratio: 16 / 9; /* Mantém o formato padrão de vídeo widescreen */
+  aspect-ratio: 16 / 9;
   position: relative;
-  border-radius: 10px;
+  border-radius: 8px;
   overflow: hidden;
   background-color: #000;
-  border: 1px solid #222;
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-/* IFRAME ADAPTÁVEL E SEGURO CONTRA ZOOM */
 .cameraIframe {
   width: 100%;
   height: 100%;
   border: none;
 }
 
+/* --- TABELA DE HISTÓRICO --- */
+.dataCollectionSection {
+  background: var(--cinza-escuro, #161616);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+}
+
+.dataCollectionSection table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  color: #e0e0e0;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.dataCollectionSection th {
+  background-color: rgba(0, 0, 0, 0.4);
+  color: var(--laranja, #ff7300);
+  padding: 12px 16px;
+  text-align: left;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  border-bottom: 2px solid var(--laranja, #ff7300);
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.dataCollectionSection th:last-child {
+  border-right: none;
+}
+
+.dataCollectionSection td {
+  padding: 12px 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  border-right: 1px solid rgba(255, 255, 255, 0.05);
+  font-size: 0.85rem;
+}
+
+.dataCollectionSection td:last-child {
+  border-right: none;
+}
+
+.dataCollectionSection tr:last-child td {
+  border-bottom: none;
+}
+
+.dataCollectionSection tr:hover td {
+  background-color: rgba(255, 115, 0, 0.04);
+}
+
+/* --- LOADING --- */
+.loadingContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 70vh;
+  background-color: var(--preto, #0d0d0d);
+  gap: 16px;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(255, 255, 255, 0.1);
+  border-top-color: var(--laranja, #ff7300);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+.loadingText {
+  color: #888;
+  font-size: 0.9rem;
+}
+
 @keyframes pulse {
   0% { opacity: 0.4; }
-  50% { opacity: 1; }
+  50% { opacity: 1; box-shadow: 0 0 12px #ff4d4d; }
   100% { opacity: 0.4; }
 }
 
-/* Responsividade: Fica um vídeo embaixo do outro em telas de celular/tablets */
-@media (max-width: 900px) {
-  .camerasGrid {
-    grid-template-columns: 1fr;
-  }
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }

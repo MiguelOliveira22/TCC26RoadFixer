@@ -1,0 +1,44 @@
+.mainContainer {
+  background-color: var(--preto, #0d0d0d);
+  min-height: 100vh;
+  width: 100%;
+}
+
+/* Envoltório da seção de dados para controlar a largura e espaçamentos */
+.dataSection {
+  max-width: 1800px;
+  margin: 0 auto;
+  padding: 20px 3% 60px;
+  box-sizing: border-box;
+}
+
+/* --- TELA DE CARREGAMENTO --- */
+.loadingContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 70vh;
+  background-color: var(--preto, #0d0d0d);
+  gap: 16px;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(255, 255, 255, 0.1);
+  border-top-color: var(--laranja, #ff7300);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+.loadingText {
+  color: #888;
+  font-size: 0.95rem;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

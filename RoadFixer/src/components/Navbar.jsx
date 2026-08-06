@@ -7,33 +7,49 @@ import BaseButton from './Button/BaseButton';
 export default function Navbar() {
   const navigate = useNavigate();
 
+  const handleNavigate = (path) => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    navigate(path);
+  };
+
   return (
-    <nav className={styles.nav}>
-      <h1 className={styles.logo} onClick={() => navigate(pathObject.path)}>
-        Road<span className={styles.highlight}>Fixer</span>
-      </h1>
+    <header className={styles.header}>
+      <nav className={styles.nav}>
+        <h1 className={styles.logo} onClick={() => handleNavigate(pathObject.path)}>
+          Road<span className={styles.highlight}>Fixer</span>
+        </h1>
 
-      <ul className={styles.ul}>
-        <BaseButton value={ "Inicio" } action={ () => {
-          window.scrollTo(0, 0);
-          navigate(pathObject.path);
-        }}/>
-
-        <BaseButton value={ "Monitoramento" } action={ () => {
-          window.scrollTo(0, 0);
-          navigate(pathObject.children[0].path);
-        }}/>
-
-        <BaseButton value={ "Estatísticas" } action={ () => {
-          window.scrollTo(0, 0);
-          navigate(pathObject.children[2].path);
-        }}/>
-
-        <FilledButton value={ "Saiba Mais" } action={ () => {
-          window.scrollTo(0, 0);
-          navigate(pathObject.children[1].path);
-        } }/>
-      </ul>
-    </nav>
-  )
+        <ul className={styles.menuList}>
+          <li>
+            <BaseButton 
+              className={styles.smallBtn}
+              value="Início" 
+              action={() => handleNavigate(pathObject.path)} 
+            />
+          </li>
+          <li>
+            <BaseButton 
+              className={styles.smallBtn}
+              value="Monitoramento" 
+              action={() => handleNavigate(pathObject.children[0].path)} 
+            />
+          </li>
+          <li>
+            <BaseButton 
+              className={styles.smallBtn}
+              value="Estatísticas" 
+              action={() => handleNavigate(pathObject.children[2].path)} 
+            />
+          </li>
+          <li>
+            <FilledButton 
+              className={styles.smallBtn}
+              value="Saiba Mais" 
+              action={() => handleNavigate(pathObject.children[1].path)} 
+            />
+          </li>
+        </ul>
+      </nav>
+    </header>
+  );
 }

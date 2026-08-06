@@ -4,11 +4,12 @@
 
     text-transform: uppercase;
     text-align: center;
-    padding: 0.3rem 1.0rem;
-    border-radius: 10px;
+    padding: 0.35rem 0.85rem; /* Ajustado para acompanhar o texto menor */
+    border-radius: 8px;
     border: none;
 
-    font-size: clamp(1rem, 0.5rem + 1vw, 2rem);
+    /* Tamanho fixo e discreto para o texto */
+    font-size: 1.3rem; 
     font-weight: 600;
     cursor: pointer;
     transition: 0.3s;

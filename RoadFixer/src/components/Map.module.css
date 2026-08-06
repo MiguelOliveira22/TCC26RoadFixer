@@ -1,13 +1,13 @@
-.mapWrapper {
-  height: 600px;
-  width: 100%;
-  border-radius: 15px;
-  overflow: hidden;
-  border: 2px solid var(--cinza-escuro);
-}
-
 .grafico {
     display: flex;
-    gap: 20px;
     flex-direction: column;
+    width: 100%;
+}
+
+.mapWrapper {
+    height: 600px;
+    width: 100%;
+    border-radius: 15px;
+    overflow: hidden;
+    border: 2px solid var(--cinza-escuro);
 }
