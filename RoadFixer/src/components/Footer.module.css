@@ -1,99 +1,178 @@
 .footer {
-    background-color: var(--cinza-escuro);
-    color: white;
-    padding: 4rem 5% 2rem;
-    border-top: 1px solid #222;
+  background-color: var(--cinza-escuro, #0a0a0a);
+  color: #ffffff;
+  padding: 4rem 8% 2rem;
+  border-top: 1px solid #1f1f1f;
+  box-sizing: border-box;
 }
 
 .topSection {
-    display: flex;
-    justify-content: space-between;
-    align-items: stretch;
-    gap: 20px;
-    margin-bottom: 3rem;
-    flex-wrap: wrap;
+  display: flex;
+  justify-content: space-between;
+  align-items: stretch;
+  gap: 30px;
+  margin-bottom: 3.5rem;
 }
 
 .column {
-    flex: 1;
-    min-width: 250px;
-    padding: 0 15px;
+  flex: 1;
+  min-width: 240px;
+  display: flex;
+  flex-direction: column;
 }
 
+/* ──── TRAÇO VERTICAL DIVISÓRIO ENTRE AS COLUNAS ──── */
 .divider {
-    width: 1px;
-    background-color: #333;
-    margin: 10px 0;
+  width: 1px;
+  background-color: #808080; /* Linha de demarcação vertical */
+  margin: 0 10px;
+  align-self: stretch; /* Faz o traço ocupar toda a altura da seção */
 }
 
-/* Responsividade: remove o divisor em ecrãs pequenos */
-@media (max-width: 768px) {
-    .divider {
-        display: none;
-    }
-
-    .topSection {
-        flex-direction: column;
-        gap: 40px;
-    }
-}
-
+/* ──── TÍTULOS COM TRAÇO LARANJA INFERIOR ──── */
 .columnTitle {
-    font-size: 1.1rem;
-    font-weight: bold;
-    margin-bottom: 1rem;
-    letter-spacing: 1px;
+  font-size: 1rem;
+  font-weight: 800;
+  letter-spacing: 1px;
+  margin-bottom: 1.5rem;
+  text-transform: uppercase;
+  color: #ffffff;
+  position: relative;
+  padding-bottom: 8px; /* Espaço para o traço não colar no texto */
+}
+
+/* Traço decorativo sob o título de cada coluna */
+.columnTitle::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 35px; /* Comprimento do traço */
+  height: 3px;  /* Espessura do traço */
+  background-color: var(--laranja, #ff5500);
+  border-radius: 2px;
 }
 
 .highlight {
-    color: var(--laranja);
+  color: var(--laranja, #ff5500);
 }
 
 .objectiveText {
-    font-size: 0.9rem;
-    color: #aaa;
-    line-height: 1.6;
+  font-size: 0.92rem;
+  color: #aaa;
+  line-height: 1.65;
+  font-weight: 300;
 }
 
 .list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
 .listItem {
-    font-size: 0.9rem;
-    color: #aaa;
-    cursor: pointer;
-    transition: color 0.3s;
+  display: flex;
+  align-items: center;
 }
 
-.listItem:hover {
-    color: var(--laranja);
-    text-decoration: underline;
+.link,
+.linkButton {
+  background: none;
+  border: none;
+  padding: 0;
+  font-family: inherit;
+  font-size: 0.9rem;
+  color: #aaa;
+  text-decoration: none;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.25s ease-in-out;
+  display: inline-block;
+}
+
+.externalIcon {
+  font-size: 0.8rem;
+  opacity: 0.7;
+  margin-left: 2px;
+}
+
+.link:hover,
+.linkButton:hover {
+  color: var(--laranja, #ff5500);
+  transform: translateX(4px);
 }
 
 .emailList {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
-.email {
-    font-size: 0.9rem;
-    color: #aaa;
+.emailLink {
+  font-size: 0.9rem;
+  color: #aaa;
+  text-decoration: none;
+  transition: all 0.25s ease-in-out;
+  width: fit-content;
 }
 
+.emailLink:hover {
+  color: var(--laranja, #ff5500);
+  transform: translateX(4px);
+}
+
+/* ──── RODAPÉ INFERIOR (COM TRAÇO SUPERIOR) ──── */
 .bottomSection {
-    border-top: 1px solid #333;
-    padding-top: 2rem;
-    text-align: center;
+  border-top: 1px solid #1f1f1f;
+  padding-top: 2rem;
+  text-align: center;
 }
 
 .copyright {
-    font-size: 0.8rem;
-    color: #555;
+  font-size: 0.82rem;
+  color: #666;
+  font-weight: 400;
+}
+
+.brandName {
+  color: #888;
+  font-weight: 600;
+}
+
+/* ──── RESPONSIVIDADE (MOBILE / TABLET) ──── */
+@media (max-width: 868px) {
+  .footer {
+    padding: 3rem 5% 2rem;
+  }
+
+  .topSection {
+    flex-direction: column;
+    gap: 32px;
+    margin-bottom: 2.5rem;
+  }
+
+  /* Em telas menores, esconde o traço vertical */
+  .divider {
+    display: none;
+  }
+
+  .column {
+    min-width: 100%;
+    /* Adiciona um traço horizontal sutil entre colunas empilhadas no celular */
+    border-bottom: 1px solid #1a1a1a;
+    padding-bottom: 24px;
+  }
+
+  .column:last-child {
+    border-bottom: none;
+  }
+
+  .link:hover,
+  .linkButton:hover,
+  .emailLink:hover {
+    transform: none;
+  }
 }

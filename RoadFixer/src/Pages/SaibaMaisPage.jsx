@@ -6,7 +6,7 @@ export default function SaibaMaisPage() {
 
   const conteudos = {
     'INTRODUÇÃO': (
-      <>
+      <div className={styles.fadeIn}>
         <p className={styles.paragraph}>
           Atualmente, mesmo com o constante crescimento da qualidade das rodovias paulistas, em especial a Anhanguera (SP-330), ainda são recorrentes as fatalidades resultantes de acidentes, as dificuldades no acesso posterior às pistas e o consumo de recursos públicos e emergenciais em resposta a esses e outros eventos similares.
         </p>
@@ -19,10 +19,10 @@ export default function SaibaMaisPage() {
         <p className={styles.paragraph}>
           Nessa lógica, é possível promover diversas melhorias aos motoristas que trafegam nessa região, além de possibilitar uma melhor alocação de recursos públicos, garantindo maior eficiência na manutenção e nas condições de tráfego.
         </p>
-      </>
+      </div>
     ),
     'METODOLOGIAS': (
-    <>
+      <div className={styles.fadeIn}>
         <p className={styles.paragraph}>
           Atualmente, estamos estudando metodologias para a modelagem e interpretação de múltiplos tipos de informação, como temperatura, condições da pista, topologia e outros dados associados, para o desenvolvimento de um modelo de risco.
         </p>
@@ -35,43 +35,45 @@ export default function SaibaMaisPage() {
         <p className={styles.paragraph}>
           Portanto, com essas soluções implementadas, seremos capazes de desenvolver um sistema de mapas que apresente a taxa de risco para cada aresta da representação gráfica e demonstre onde os elementos devem ser posicionados para mitigar esse tipo de evento.
         </p>
-    </>
+      </div>
     ),
     'REFERÊNCIAS': (
-    <>
+      <div className={`${styles.fadeIn} ${styles.references}`}>
         <p className={styles.paragraph}>
           LILIANA, Q.; MOHAMED, M. W.; TAREK, S. Safety models incorporating graph theory based transit indicators, 2022.
         </p>
         <p className={styles.paragraph}>
-          IHUEZE, C. C.; ONWURAH, U. O. Road traffic accidents prediction modelling: An analysis of Anambra State, Nigeria. Accident Analysis & Prevention, v. 112, p. 21-29, 2018.
+          IHUEZE, C. C.; ONWURAH, U. O. Road traffic accidents prediction modelling: An analysis of Anambra State, Nigeria. <em>Accident Analysis & Prevention</em>, v. 112, p. 21-29, 2018.
         </p>
         <p className={styles.paragraph}>
-          WENQI, L.; DONGYU, L.; MENGHUA, Y. A model of traffic accident prediction based on convolutional neural network. IEEE Xplore, 2017. Disponível em: <a href='https://ieeexplore.ieee.org/document/8056908/authors#authors' target='_blank' className={styles.highlight}>https://ieeexplore.ieee.org/document/8056908/authors#authors</a>. Acesso em: 16 abr. 2026.
+          WENQI, L.; DONGYU, L.; MENGHUA, Y. A model of traffic accident prediction based on convolutional neural network. <em>IEEE Xplore</em>, 2017. Disponível em: <a href='https://ieeexplore.ieee.org/document/8056908/authors#authors' target='_blank' rel='noreferrer' className={styles.highlight}>https://ieeexplore.ieee.org/document/8056908</a>. Acesso em: 16 abr. 2026.
         </p>
         <p className={styles.paragraph}>
           D’AVILA, R. F. Modelo sistêmico para detecção de pontos críticos em rodovias com base em segmentos homogêneos. 2025. Dissertação (Mestrado em Engenharia de Transportes) – Universidade Federal de Minas Gerais, Belo Horizonte, 2025.
         </p>
-    </>
+      </div>
     )
   };
 
   return (
     <div className={styles.page}>
       <aside className={styles.sidebar}>
-        <h2 className={styles.sidebarTitle}>SAIBA MAIS SOBRE O <br/> ROAD<span className={{color: 'var(--laranja)'}}>FIXER</span></h2>
+        <h2 className={styles.sidebarTitle}>
+          SAIBA MAIS SOBRE O <br />
+          ROAD<span className={styles.brandHighlight}>FIXER</span>
+        </h2>
         
-        <div className={styles.menu}>
+        <nav className={styles.menu}>
           {Object.keys(conteudos).map((nome) => (
             <button 
               key={nome}
-              style = {{color: secaoAtiva === nome ? 'var(--laranja)' : '#888'}}
-              onClick={() => {setSecaoAtiva(nome)}}
-              className={ styles.menuButton }
+              onClick={() => setSecaoAtiva(nome)}
+              className={`${styles.menuButton} ${secaoAtiva === nome ? styles.active : ''}`}
             >
               {nome}
             </button>
           ))}
-        </div>
+        </nav>
       </aside>
 
       <main className={styles.content}>

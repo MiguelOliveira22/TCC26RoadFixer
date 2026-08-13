@@ -4,8 +4,13 @@ import styles from "./Footer.module.css";
 export default function Footer() {
   const navigate = useNavigate();
 
+  const handleInternalNav = (path) => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    navigate(path);
+  };
+
   const linksSaibaMais = [
-    { text: "Estatísticas", action: () => { window.scrollTo(0, 0); navigate('/estatisticas'); } },
+    { text: "Estatísticas", action: () => handleInternalNav('/estatisticas') },
     { text: "Site Concessionária", url: 'https://www.rodoviaanhanguera.com.br/' },
     { text: "Coletânea de Pesquisas Utilizadas", url: 'https://drive.google.com/drive/folders/1DTl53Iwic3K--vYx8XcfTfrC53YAajas?usp=sharing' },
     { text: "ARTESP Dados Abertos", url: 'https://dadosabertos.artesp.sp.gov.br/' },
@@ -19,15 +24,11 @@ export default function Footer() {
     "matheuscalopsita36@gmail.com"
   ];
 
-  // Função para abrir o cliente de e-mail
-  const handleEmailClick = (email) => {
-    window.location.href = `mailto:${email}`;
-  };
-
   return (
     <footer className={styles.footer}>
       <div className={styles.topSection}>
         
+        {/* Coluna 1: Objetivo */}
         <div className={styles.column}>
           <h3 className={styles.columnTitle}>
             NOSSO <span className={styles.highlight}>OBJETIVO</span>
@@ -40,16 +41,29 @@ export default function Footer() {
 
         <div className={styles.divider}></div> 
 
+        {/* Coluna 2: Saiba Mais */}
         <div className={styles.column}>
           <h3 className={styles.columnTitle}>SAIBA MAIS</h3>
           <ul className={styles.list}>
             {linksSaibaMais.map((link, index) => (
-              <li 
-                key={index} 
-                className={styles.listItem} 
-                onClick={link.url ? () => window.open(link.url, '_blank') : link.action}
-              >
-                {link.text}
+              <li key={index} className={styles.listItem}>
+                {link.url ? (
+                  <a 
+                    href={link.url} 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    className={styles.link}
+                  >
+                    {link.text} <span className={styles.externalIcon}>↗</span>
+                  </a>
+                ) : (
+                  <button 
+                    onClick={link.action} 
+                    className={styles.linkButton}
+                  >
+                    {link.text}
+                  </button>
+                )}
               </li>
             ))}
           </ul>
@@ -57,26 +71,27 @@ export default function Footer() {
 
         <div className={styles.divider}></div> 
 
+        {/* Coluna 3: Contato */}
         <div className={styles.column}>
           <h3 className={styles.columnTitle}>CONTATO</h3>
           <div className={styles.emailList}>
             {emails.map((email, index) => (
-              <span 
+              <a 
                 key={index} 
-                className={styles.email} 
-                onClick={() => handleEmailClick(email)}
-                style={{ cursor: 'pointer' }} // Garante que o cursor de "mãozinha" apareça ao passar o mouse
+                href={`mailto:${email}`} 
+                className={styles.emailLink}
               >
                 {email}
-              </span>
+              </a>
             ))}
           </div>
         </div>
+
       </div>
 
       <div className={styles.bottomSection}>
         <span className={styles.copyright}>
-          © 2026 - RoadFixer - Todos os direitos reservados.
+          © 2026 - <span className={styles.brandName}>RoadFixer</span> - Todos os direitos reservados.
         </span>
       </div>
     </footer>

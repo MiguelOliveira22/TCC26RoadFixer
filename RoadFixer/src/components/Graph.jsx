@@ -18,7 +18,7 @@ const CustomTooltip = ({ active, payload, label }) => {
       <div className={styles.customTooltip}>
         <p className={styles.tooltipLabel}>{`Km: ${label}`}</p>
         <p className={styles.tooltipValue}>
-          Nível de Risco: <span>{payload[0].value}</span>
+          Nível de Risco: <span>{payload[0].value.toFixed(2)}</span>
         </p>
       </div>
     );
