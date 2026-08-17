@@ -103,12 +103,6 @@ def assignRoutesAPI(api: FastAPI):
                 if len(df) < antes:
                     print(f"Aviso: {antes - len(df)} linha(s) descartada(s) por falta de LATITUDE/LONGITUDE")
 
-                # Ordena por data: o arquivo não vem necessariamente em ordem
-                # cronológica, e sem isso um mesmo lote de 100 pode misturar
-                # datas de meses bem diferentes, deixando o intervalo
-                # start_date/end_date do open-meteo gigante (e o request lento/travando)
-                df = df.sort_values("date").reset_index(drop=True)
-
                 # Converte o DataFrame em uma lista de dicionários, no mesmo
                 # formato que o resto do código já espera: {"date", "hora", "lat", "lon", "km"}
                 records_para_processar = df[["date", "hora", "LATITUDE", "LONGITUDE", "km"]].rename(
