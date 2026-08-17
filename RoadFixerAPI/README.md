@@ -9,6 +9,7 @@ De forma geral, consideramos alguns módulos no desenvolvimento da API, sendo el
 fastapi[standard]
 osmnx
 folium
+pandas
 ```
 
 Todos eles podem ser instalados usando o comando ```pip install <módulo>```.
