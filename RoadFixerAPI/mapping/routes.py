@@ -7,6 +7,7 @@ import requests
 import json
 import random
 import pandas as pd
+import time
 
 filepath = "./content/"
 
@@ -111,6 +112,8 @@ def assignRoutesAPI(api: FastAPI):
 
                 # 2. Requisições em Lote (Batching)
                 BATCH_SIZE = 100
+                SLEEP_BETWEEN_BATCHES = 1.0  # segundos, ajuste conforme necessário
+                MAX_RETRIES = 5
                 for b in range(0, len(records_para_processar), BATCH_SIZE):
                     batch = records_para_processar[b : b + BATCH_SIZE]
 
@@ -135,14 +138,24 @@ def assignRoutesAPI(api: FastAPI):
                         "timezone": "America/Sao_Paulo",
                     }
 
-                    # timeout=30 evita que o request fique preso pra sempre
-                    # se o open-meteo não responder (era isso que estava
-                    # "travando" o servidor até o proxy devolver 500)
-                    try:
-                        response = requests.get(url, params=params, timeout=30)
-                    except requests.exceptions.RequestException as e:
-                        print(f"Erro ao chamar open-meteo no lote {b}: {e}")
-                        continue
+                    response = None
+                    for tentativa in range(MAX_RETRIES):
+                        try:
+                            response = requests.get(url, params=params, timeout=30)
+                        except requests.exceptions.RequestException as e:
+                            print(f"Erro ao chamar open-meteo no lote {b}: {e}")
+                            break
+
+                        if response.status_code == 429:
+                            espera = int(response.headers.get("Retry-After", 60))
+                            print(f"Rate limit no lote {b}, aguardando {espera}s (tentativa {tentativa + 1}/{MAX_RETRIES})")
+                            time.sleep(espera)
+                            continue  # tenta de novo
+
+                        break  # não foi 429 (deu certo ou foi outro erro), sai do retry
+
+                    if response is None:
+                        continue  # falhou de vez (erro de conexão), pula o lote
 
                     if response.status_code == 200:
                         res_json = response.json()
@@ -152,7 +165,15 @@ def assignRoutesAPI(api: FastAPI):
                         # CORREÇÃO AQUI: Itera item a item emparelhando o registro com a resposta meteorológica
                         for item, meteo_ponto in zip(batch, meteo_list):
                             hourly = meteo_ponto["hourly"]
-                            h_idx = item["hora"]  # Pega a hora exata deste acidente específico
+
+                            # timestamp exato do acidente, no mesmo formato que vem em hourly["time"]
+                            timestamp_alvo = f"{item['date']}T{item['hora']:02d}:00"
+
+                            try:
+                                h_idx = hourly["time"].index(timestamp_alvo)
+                            except ValueError:
+                                print(f"Timestamp {timestamp_alvo} não encontrado no retorno do open-meteo")
+                                continue
 
                             dados_no_momento_do_acidente = {
                                 "hora": hourly["time"][h_idx],
@@ -164,8 +185,12 @@ def assignRoutesAPI(api: FastAPI):
 
                             print(dados_no_momento_do_acidente)
 
+                    elif response.status_code == 429:
+                        print(f"Lote {b} falhou após {MAX_RETRIES} tentativas por rate limit — pulado")
+                        continue
                     else:
                         print(f"open-meteo devolveu {response.status_code} no lote {b}: {response.text[:200]}")
+
 
                     # Atualização dos riscos
                     for item in batch:
