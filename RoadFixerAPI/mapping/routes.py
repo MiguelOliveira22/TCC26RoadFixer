@@ -210,7 +210,7 @@ def assignRoutesAPI(api: FastAPI):
         return {"status": "Processamento concluído com sucesso"}
 
     def calcGravity(vi, vl, vm, vg, vf):
-        return
+        return (13*vf) + (5*vg) + (2*vm) + vl
 
     def calcFatorClimatico(clima):
         return
