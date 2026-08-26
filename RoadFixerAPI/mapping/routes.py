@@ -1,13 +1,15 @@
 from fastapi import FastAPI
 from fastapi.responses import FileResponse, PlainTextResponse
 from pathlib import Path
-from datetime import datetime
+from datetime import datetime, date as dt
 
 import requests
 import json
 import random
 import pandas as pd
 import time
+import statistics
+import math
 
 filepath = "./content/"
 
@@ -30,7 +32,7 @@ def assignRoutesAPI(api: FastAPI):
     async def footerLinks():
         return
     
-    @api.get("/asdf/")
+    @api.get("/asdata/")
     async def footerEmails():
         return
     
@@ -47,164 +49,177 @@ def assignRoutesAPI(api: FastAPI):
     @api.get("/calcAccidents")
     async def calcAccidents():
         directory = Path(filepath + "accident-history/data")
-
         with open(
-            filepath + "accident-history/risk/savedData.json",
-            "r+",
-            encoding="utf-8",
-        ) as savedFile:
-            savedData = json.load(savedFile)
-            Alteration = False  # Controle para só salvar se houver novos dados
+            filepath + "formula/tau.csv",
+        ) as tauTableFile:
+            tauTable = pd.read_csv(tauTableFile.name, encoding="utf-8")
+            with open(
+                filepath + "accident-history/risk/savedData.json",
+                "r+",
+                encoding="utf-8",
+            ) as savedataile:
+                countFilesData = 0
+                savedData = json.load(savedataile)
+                newData = [0] * len(savedData["risk"])
 
-            for file_path in directory.iterdir():
-                print(f"Lendo arquivo: {file_path.name}")
+                for file_path in directory.iterdir():
+                    print(f"Lendo arquivo: {file_path.name}")
 
-                # Pulando arquivos ocultos, diretórios acidentais (.DS_Store, etc)
-                # e qualquer coisa que não seja .csv
-                if not file_path.is_file() or file_path.suffix.lower() != ".csv":
-                    continue
-
-                # pandas já lê o CSV inteiro e monta uma tabela (DataFrame),
-                # usando a primeira linha do arquivo como nome das colunas
-                df = pd.read_csv(file_path, encoding="utf-8")
-
-                # Evita erro caso o arquivo lido esteja sem registros
-                if df.empty:
-                    continue
-
-                # Ignora arquivos antigos baseado no last_update salvo
-                # (equivalente ao antigo data["records"][0][1], agora é a
-                # primeira linha da coluna DATA)
-                primeira_data = str(df["DATA"].iloc[0])
-                if datetime.fromisoformat(primeira_data) < datetime.fromisoformat(
-                    savedData["last_update"]
-                ):
-                    continue
-
-                Alteration = True
-
-                # 1. Monta as colunas derivadas direto no DataFrame (bem mais
-                # rápido do que fazer um for linha a linha em Python puro)
-
-                # Extrai apenas a data, sem hora (ex: "2026-01-01T00:00:00" -> "2026-01-01")
-                df["date"] = df["DATA"].astype(str).str.split("T").str[0].str.split(" ").str[0]
-
-                # Extrai apenas o número da hora (ex: "06:30:00" -> 6)
-                df["hora"] = df["HORA"].astype(str).str.split(":").str[0].astype(int)
-
-                # KM: troca vírgula por ponto (padrão BR -> padrão numérico) e arredonda
-                df["km"] = (
-                    df["KM"].astype(str).str.replace(",", ".", regex=False).astype(float).round().astype(int)
-                )
-
-                # Descarta linhas sem LATITUDE/LONGITUDE (não dá pra consultar
-                # clima sem coordenada, e mandar NaN pro open-meteo quebra o request)
-                antes = len(df)
-                df = df.dropna(subset=["LATITUDE", "LONGITUDE"])
-                if len(df) < antes:
-                    print(f"Aviso: {antes - len(df)} linha(s) descartada(s) por falta de LATITUDE/LONGITUDE")
-
-                # Converte o DataFrame em uma lista de dicionários, no mesmo
-                # formato que o resto do código já espera: {"date", "hora", "lat", "lon", "km"}
-                records_para_processar = df[["date", "hora", "LATITUDE", "LONGITUDE", "km"]].rename(
-                    columns={"LATITUDE": "lat", "LONGITUDE": "lon"}
-                ).to_dict("records")
-
-                # 2. Requisições em Lote (Batching)
-                BATCH_SIZE = 100
-                SLEEP_BETWEEN_BATCHES = 1.0  # segundos, ajuste conforme necessário
-                MAX_RETRIES = 5
-                for b in range(0, len(records_para_processar), BATCH_SIZE):
-                    batch = records_para_processar[b : b + BATCH_SIZE]
-
-                    lats = [item["lat"] for item in batch]
-                    lons = [item["lon"] for item in batch]
-                    dates = [item["date"] for item in batch]
-
-                    url = "https://archive-api.open-meteo.com/v1/archive"
-                    params = {
-                        "latitude": lats,
-                        "longitude": lons,
-                        "start_date": min(dates),
-                        "end_date": max(dates),
-                        "hourly": [
-                            "temperature_2m",
-                            "precipitation",
-                            "rain",
-                            "weather_code",
-                            "wind_speed_10m",
-                            "wind_gusts_10m",
-                        ],
-                        "timezone": "America/Sao_Paulo",
-                    }
-
-                    response = None
-                    for tentativa in range(MAX_RETRIES):
-                        try:
-                            response = requests.get(url, params=params, timeout=30)
-                        except requests.exceptions.RequestException as e:
-                            print(f"Erro ao chamar open-meteo no lote {b}: {e}")
-                            break
-
-                        if response.status_code == 429:
-                            espera = int(response.headers.get("Retry-After", 60))
-                            print(f"Rate limit no lote {b}, aguardando {espera}s (tentativa {tentativa + 1}/{MAX_RETRIES})")
-                            time.sleep(espera)
-                            continue  # tenta de novo
-
-                        break  # não foi 429 (deu certo ou foi outro erro), sai do retry
-
-                    if response is None:
-                        continue  # falhou de vez (erro de conexão), pula o lote
-
-                    if response.status_code == 200:
-                        res_json = response.json()
-                        # Garante que res_json seja uma lista mesmo se o lote tiver 1 elemento só
-                        meteo_list = res_json if isinstance(res_json, list) else [res_json]
-
-                        # CORREÇÃO AQUI: Itera item a item emparelhando o registro com a resposta meteorológica
-                        for item, meteo_ponto in zip(batch, meteo_list):
-                            hourly = meteo_ponto["hourly"]
-
-                            # timestamp exato do acidente, no mesmo formato que vem em hourly["time"]
-                            timestamp_alvo = f"{item['date']}T{item['hora']:02d}:00"
-
-                            try:
-                                h_idx = hourly["time"].index(timestamp_alvo)
-                            except ValueError:
-                                print(f"Timestamp {timestamp_alvo} não encontrado no retorno do open-meteo")
-                                continue
-
-                            dados_no_momento_do_acidente = {
-                                "hora": hourly["time"][h_idx],
-                                "chuva": hourly["precipitation"][h_idx],
-                                "vento": hourly["wind_speed_10m"][h_idx],
-                                "rajada": hourly["wind_gusts_10m"][h_idx],
-                                "codigo_tempo": hourly["weather_code"][h_idx],
-                            }
-
-                            print(dados_no_momento_do_acidente)
-
-                    elif response.status_code == 429:
-                        print(f"Lote {b} falhou após {MAX_RETRIES} tentativas por rate limit — pulado")
+                    # Pulando arquivos ocultos, diretórios acidentais (.DS_Store, etc)
+                    # e qualquer coisa que não seja .csv
+                    if not file_path.is_file() or file_path.suffix.lower() != ".csv":
                         continue
-                    else:
-                        print(f"open-meteo devolveu {response.status_code} no lote {b}: {response.text[:200]}")
+
+                    # pandas já lê o CSV inteiro e monta uma tabela (DataFrame),
+                    # usando a primeira linha do arquivo como nome das colunas
+                    data = pd.read_csv(file_path, encoding="utf-8")
+
+                    # Evita erro caso o arquivo lido esteja sem registros
+                    if data.empty:
+                        continue
+
+                    countFilesData += 1
+
+                    # 1. Monta as colunas derivadas direto no DataFrame (bem mais
+                    # rápido do que fazer um for linha a linha em Python puro)
+
+                    # Extrai apenas a data, sem hora (ex: "2026-01-01T00:00:00" -> "2026-01-01")
+                    data["date"] = data["DATA"].astype(str).str.split("T").str[0].str.split(" ").str[0]
+
+                    # Extrai apenas o número da hora (ex: "06:30:00" -> 6)
+                    data["hora"] = data["HORA"].astype(str).str.split(":").str[0].astype(int)
+
+                    # KM: troca vírgula por ponto (padrão BR -> padrão numérico) e arredonda
+                    data["KM"] = (
+                        data["KM"].astype(str).str.replace(",", ".", regex=False).astype(float).round().astype(int)
+                    )
+
+                    # Descarta linhas sem LATITUDE/LONGITUDE (não dá pra consultar
+                    # clima sem coordenada, e mandar NaN pro open-meteo quebra o request)
+                    antes = len(data)
+                    data = data.dropna(subset=["LATITUDE", "LONGITUDE"])
+                    if len(data) < antes:
+                        print(f"Aviso: {antes - len(data)} linha(s) descartada(s) por falta de LATITUDE/LONGITUDE")
+
+                    # Converte o DataFrame em uma lista de dicionários, no mesmo
+                    # formato que o resto do código já espera: {"date", "hora", "lat", "lon", "KM"}
+                    records_para_processar = data[["date", "hora", "LATITUDE", "LONGITUDE", "KM", "CLASSE", "SUBCLASSE", "VITIMA_ILESA" , "VITIMA_LEVE", "VITIMA_MODERADA", "VITIMA_GRAVE", "VITIMA_FATAL"]].rename(
+                        columns={"LATITUDE": "lat", "LONGITUDE": "lon", "VITIMA_ILESA": "VI", "VITIMA_LEVE": "VL", "VITIMA_MODERADA": "VM", "VITIMA_GRAVE": "VG", "VITIMA_FATAL": "VF"}
+                    ).to_dict("records")
+
+                    # 2. Requisições em Lote (Batching)
+                    BATCH_SIZE = 100
+                    MAX_RETRIES = 5
+                    for b in range(0, len(records_para_processar), BATCH_SIZE):
+                        batch = records_para_processar[b : b + BATCH_SIZE]
+
+                        lats = [acidente["lat"] for acidente in batch]
+                        lons = [acidente["lon"] for acidente in batch]
+                        dates = [acidente["date"] for acidente in batch]
+
+                        url = "https://archive-api.open-meteo.com/v1/archive"
+                        params = {
+                            "latitude": lats,
+                            "longitude": lons,
+                            "start_date": min(dates),
+                            "end_date": max(dates),
+                            "hourly": [
+                                "temperature_2m",
+                                "precipitation",
+                                "rain",
+                                "weather_code",
+                                "wind_speed_10m",
+                                "wind_gusts_10m",
+                            ],
+                            "timezone": "America/Sao_Paulo",
+                        }
+
+                        response = None
+                        for tentativa in range(MAX_RETRIES):
+                            try:
+                                response = requests.get(url, params=params, timeout=30)
+                            except requests.exceptions.RequestException as e:
+                                print(f"Erro ao chamar open-meteo no lote {b}: {e}")
+                                break
+
+                            if response.status_code == 429:
+                                espera = int(response.headers.get("Retry-After", 60))
+                                print(f"Rate limit no lote {b}, aguardando {espera}s (tentativa {tentativa + 1}/{MAX_RETRIES})")
+                                time.sleep(espera)
+                                continue  # tenta de novo
+
+                            break  # não foi 429 (deu certo ou foi outro erro), sai do retry
+
+                        if response is None:
+                            continue  # falhou de vez (erro de conexão), pula o lote
+
+                        if response.status_code == 200:
+                            res_json = response.json()
+                            # Garante que res_json seja uma lista mesmo se o lote tiver 1 elemento só
+                            meteo_list = res_json if isinstance(res_json, list) else [res_json]
+
+                            # Itera acidente a acidente emparelhando o registro com a resposta meteorológica
+                            for acidente, meteo_ponto in zip(batch, meteo_list):
+                                hourly = meteo_ponto["hourly"]
+
+                                # timestamp exato do acidente, no mesmo formato que vem em hourly["time"]
+                                timestamp_alvo = f"{acidente['date']}T{acidente['hora']:02d}:00"
+
+                                try:
+                                    h_idx = hourly["time"].index(timestamp_alvo)
+                                except ValueError:
+                                    print(f"Timestamp {timestamp_alvo} não encontrado no retorno do open-meteo")
+                                    continue
+
+                                dados_no_momento_do_acidente = {
+                                    "hora": hourly["time"][h_idx],
+                                    "chuva": hourly["precipitation"][h_idx],
+                                    "vento": hourly["wind_speed_10m"][h_idx],
+                                    "rajada": hourly["wind_gusts_10m"][h_idx],
+                                    "codigo_tempo": hourly["weather_code"][h_idx],
+                                }
+
+                                newData[acidente["KM"]] += calcGravity(acidente["VI"], acidente["VL"], acidente["VM"], acidente["VG"], acidente["VF"]) * calcFatorClimatico(dados_no_momento_do_acidente) * calcRecencia(acidente) * calcTau(acidente)
+
+                        elif response.status_code == 429:
+                            print(f"Lote {b} falhou após {MAX_RETRIES} tentativas por rate limit — pulado")
+                            continue
+                        else:
+                            print(f"open-meteo devolveu {response.status_code} no lote {b}: {response.text[:200]}")
 
 
-                    # Atualização dos riscos
-                    for item in batch:
-                        savedData["risk"][item["km"]] += 1
-                        savedData["last_update"] = item["date"]
+                # Atualização dos riscos
+                if(countFilesData > 0):
+                    for i in range(len(newData)):
+                        newData[i] = newData[i]/countFilesData
 
-            # SALVAMENTO AUTOMÁTICO
-            if Alteration:
-                print("att")
-                savedFile.seek(0)
-                savedFile.truncate()
-                json.dump(savedData, savedFile, indent=4)
+                    media = sum(newData) / len(newData)
+                    desvio_padrao = statistics.pstdev(newData)
+
+                    for i in range(len(newData)):
+                        savedData["risk"][i] = 10 / (1 + math.pow(math.e, -((newData[i] - media) / desvio_padrao)))
+
+                    savedData["last_update"] = dt.today()
+                        
+                    # SALVAMENTO AUTOMÁTICO
+                    print("att")
+                    savedataile.seek(0)
+                    savedataile.truncate()
+                    json.dump(savedData, savedataile, indent=4)
 
         return {"status": "Processamento concluído com sucesso"}
+
+    def calcGravity(vi, vl, vm, vg, vf):
+        return
+
+    def calcFatorClimatico(clima):
+        return
+
+    def calcRecencia(acidente):
+        return
+
+    def calcTau(tauTable, acidente):
+        return
 
     # exemplo de retorno do site open-meteo
     '''
