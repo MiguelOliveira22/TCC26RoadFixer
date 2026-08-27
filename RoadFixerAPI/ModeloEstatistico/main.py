@@ -1,4 +1,4 @@
-from RoadFixerAPI.mapping.routes import assignRoutesAPI
+from RoadFixerAPI.API.mapping.routes import assignRoutesAPI
 import fastapi
 
 server = fastapi.FastAPI()

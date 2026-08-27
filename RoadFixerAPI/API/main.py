@@ -1,5 +1,5 @@
-from mapping.directory import assignRoutesDirectory
-from mapping.routes import assignRoutesAPI
+from RoadFixerAPI.API.mapping.directory import assignRoutesDirectory
+from RoadFixerAPI.API.mapping.routes import assignRoutesAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import FastAPI
 
