@@ -52,14 +52,14 @@ def assignRoutesAPI(api: FastAPI):
         with open(
             filepath + "formula/tau.csv",
         ) as tauTableFile:
-            tauTable = pd.read_csv(tauTableFile.name, encoding="utf-8")
+            TAU_TABLE = pd.read_csv(tauTableFile.name, encoding="utf-8")
             with open(
                 filepath + "accident-history/risk/savedData.json",
                 "r+",
                 encoding="utf-8",
-            ) as savedataile:
+            ) as savedatafile:
                 countFilesData = 0
-                savedData = json.load(savedataile)
+                savedData = json.load(savedatafile)
                 newData = [0] * len(savedData["risk"])
 
                 for file_path in directory.iterdir():
@@ -179,7 +179,7 @@ def assignRoutesAPI(api: FastAPI):
                                     "codigo_tempo": hourly["weather_code"][h_idx],
                                 }
 
-                                newData[acidente["KM"]] += calcGravity(acidente["VI"], acidente["VL"], acidente["VM"], acidente["VG"], acidente["VF"]) * calcFatorClimatico(dados_no_momento_do_acidente) * calcRecencia(acidente) * calcTau(acidente)
+                                newData[acidente["KM"]] += calcGravity(acidente["VI"], acidente["VL"], acidente["VM"], acidente["VG"], acidente["VF"]) * calcFatorClimatico(dados_no_momento_do_acidente) * calcRecencia(acidente) * calcTau(TAU_TABLE, acidente)
 
                         elif response.status_code == 429:
                             print(f"Lote {b} falhou após {MAX_RETRIES} tentativas por rate limit — pulado")
@@ -189,6 +189,7 @@ def assignRoutesAPI(api: FastAPI):
 
 
                 # Atualização dos riscos
+
                 if(countFilesData > 0):
                     for i in range(len(newData)):
                         newData[i] = newData[i]/countFilesData
@@ -199,13 +200,13 @@ def assignRoutesAPI(api: FastAPI):
                     for i in range(len(newData)):
                         savedData["risk"][i] = 10 / (1 + math.pow(math.e, -((newData[i] - media) / desvio_padrao)))
 
-                    savedData["last_update"] = dt.today()
+                    savedData["last_update"] = dt.today().strftime("%Y-%m-%d")
                         
                     # SALVAMENTO AUTOMÁTICO
                     print("att")
-                    savedataile.seek(0)
-                    savedataile.truncate()
-                    json.dump(savedData, savedataile, indent=4)
+                    savedatafile.seek(0)
+                    savedatafile.truncate()
+                    json.dump(savedData, savedatafile, indent=4)
 
         return {"status": "Processamento concluído com sucesso"}
 
@@ -213,13 +214,23 @@ def assignRoutesAPI(api: FastAPI):
         return (13*vf) + (5*vg) + (2*vm) + vl
 
     def calcFatorClimatico(clima):
-        return
+        return 1.3 - (0.5 * min(1, clima["chuva"] / 20))
 
     def calcRecencia(acidente):
-        return
+        data_comparar = datetime.strptime(acidente["date"], "%Y-%m-%d")
+        hoje = datetime.today()
+        diferenca_anos = (hoje.year - data_comparar.year - ((hoje.month, hoje.day) < (data_comparar.month, data_comparar.day)))
+        return math.pow(math.e, -((math.log(2) / 3) * diferenca_anos))
 
     def calcTau(tauTable, acidente):
-        return
+        resultado = tauTable.loc[
+            (tauTable["CLASSE"] == acidente["CLASSE"]) & 
+            (tauTable["SUBCLASSE"] == acidente["SUBCLASSE"]), 
+            "τ"
+        ]
+
+        # 2. Verifica se encontrou algo antes de acessar o índice [0]
+        return resultado.values[0] if not resultado.empty else 0
 
     # exemplo de retorno do site open-meteo
     '''
