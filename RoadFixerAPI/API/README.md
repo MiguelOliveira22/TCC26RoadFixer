@@ -16,7 +16,7 @@ Todos eles podem ser instalados usando o comando ```pip install <módulo>```.
 
 ## Uso
 
-Para usar a API, devemos usar o comando ```uvicorn main:server --reload --host 0.0.0.0 --port 8000```.
+Para usar a API, devemos usar o comando ```uvicorn API.main:server --reload --host 0.0.0.0 --port 8000```.
 
 Isso configura a API para auto-recarregar toda vez que fizermos uma alteração, ir para o primeiro IP possível de host e usar a porta 8000.
 

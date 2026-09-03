@@ -8,15 +8,16 @@ import time
 import statistics
 import math
 
-filepath = Path("./data/")
+filepath = Path("./ModeloEstatistico/data")
+filepathRisk = Path("./API/content/accident-history")
 
-TAUTABLE = pd.read_csv(filepath + "tau.csv", encoding="utf-8")
+TAUTABLE = pd.read_csv(str(filepath) + "/tau.csv", encoding="utf-8")
 
 def calcAccidents():
-    directory = Path(filepath, "accident-history")
+    directory = Path(filepath, "accidents")
 
     with open(
-        Path(directory, "risk/savedData.json"),
+        Path(filepathRisk, "risk/savedData.json"),
         "r+",
         encoding="utf-8",
     ) as savedatafile:

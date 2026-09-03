@@ -6,6 +6,7 @@ from pathlib import Path
 import asyncio
 import re
 import os
+import ModeloEstatistico.core.riskCalculations as calc
 
 BASE_DIR = Path(__file__).resolve().parent
 
@@ -142,6 +143,9 @@ def atualizarSistema():
 
     print(f"\n===== ATUALIZAÇÃO DO SISTEMA {ano} =====")
     prepararPastas(ano)
+
+    print("\n===== Realizando o Calculo dos Riscos =====")
+    calc.calcAccidents()
 
     artesp_ok = atualizarARTESP()
 

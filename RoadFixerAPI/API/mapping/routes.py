@@ -26,3 +26,8 @@ def assignRoutesAPI(api: FastAPI):
     async def getAccidentHistory():
         with open(filepath + "accident-history/content.json") as file:
             return json.load(file)
+
+    @api.get("/riskData")
+    async def getRiskData():
+        with open(filepath + "accident-history/risk/testeSalvo.json") as file:
+            return json.load(file)
