@@ -10,6 +10,7 @@ fastapi[standard]
 osmnx
 folium
 pandas
+torch
 ```
 
 Todos eles podem ser instalados usando o comando ```pip install <módulo>```.
