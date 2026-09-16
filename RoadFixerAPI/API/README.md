@@ -11,6 +11,8 @@ osmnx
 folium
 pandas
 torch
+matplotlib
+seaborn
 ```
 
 Todos eles podem ser instalados usando o comando ```pip install <módulo>```.
