@@ -11,11 +11,8 @@ import ModeloEstatistico.core.riskCalculations as calc
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 def prepararPastas(ano):
-    pastaData = BASE_DIR / "ModeloEstatistico/data/accidents" / str(ano)
+    pastaData = BASE_DIR / "ModeloEstatistico/data/accidents/" / str(ano)
     pastaWeather = BASE_DIR / "weather-data" / str(ano)
-
-    pastaData.mkdir(parents=True, exist_ok=True)
-    pastaWeather.mkdir(parents=True, exist_ok=True)
 
     return pastaData, pastaWeather
 
