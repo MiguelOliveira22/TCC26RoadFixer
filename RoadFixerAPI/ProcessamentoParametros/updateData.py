@@ -19,6 +19,18 @@ def prepararPastas(ano):
 # ========================================================
 # FUNÇÕES DE NORMALIZAÇÃO DA ARTESP
 # ========================================================
+def safe_eval(cell: str):
+    try:
+        pairs = {}
+
+        vehicles = cell.split("|")
+        for vech in vehicles:
+            partial = vech.split("=")
+            pairs[partial[0]] = int(partial[1])
+        return pairs
+    except:
+        return {}
+
 def normalizar_classe(s):
     if pd.isna(s):
         return "NÃO INFORMADO"
@@ -111,6 +123,15 @@ def atualizarARTESP():
             data["CLASSE"] = data["CLASSE"].apply(normalizar_classe)
         if "SUBCLASSE" in data.columns:
             data["SUBCLASSE"] = data["SUBCLASSE"].apply(normalizar_subclasse)
+        if "VEICULOS_ENVOLVIDOS" in data.columns:
+            df_dicts = data.VEICULOS_ENVOLVIDOS.apply(safe_eval)
+
+            df_expanded = pd.json_normalize(df_dicts).fillna(0)
+
+            data = pd.concat([data, df_expanded], axis=1)
+            data.drop(columns="VEICULOS_ENVOLVIDOS")
+            
+            data["NUMVEÍCULOS"] = data.loc[:, 'AUTOMÓVEL' : "CARRETINHA"].sum(axis=1)
 
         data["RODOVIA"] = data["RODOVIA"].astype(str).str.upper().str.strip()
         data.to_csv(arquivoCompleto, index=False, encoding="utf-8")
