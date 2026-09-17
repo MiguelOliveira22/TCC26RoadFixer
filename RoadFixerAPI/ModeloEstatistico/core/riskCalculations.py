@@ -9,11 +9,12 @@ import time
 import statistics
 import math
 
-filepath = Path("./ModeloEstatistico/data_tau")
+filepath = Path("./data/accidents/processed")
+filepathTau = Path("./ModeloEstatistico/data_tau")
 filepathRisk = Path("./API/content/accident-history")
 filepathWeather = Path("./data/weather-data")
 
-TAUTABLE = pd.read_csv(str(filepath) + "/tau.csv", encoding="utf-8")
+TAUTABLE = pd.read_csv(str(filepathTau) + "/tau.csv", encoding="utf-8")
 
 def calcAccidents():
     directory = Path(filepath)
@@ -55,10 +56,10 @@ def calcAccidents():
             # rápido do que fazer um for linha a linha em Python puro)
 
             # Extrai apenas a data, sem hora (ex: "2026-01-01T00:00:00" -> "2026-01-01")
-            data["date"] = data["DATA"].astype(str).str.split("T").str[0].str.split(" ").str[0]
+            data["DATA"] = data["DATA"].astype(str).str.split("T").str[0].str.split(" ").str[0]
 
             # Extrai apenas o número da hora (ex: "06:30:00" -> 6)
-            data["hora"] = data["HORA"].astype(str).str.split(":").str[0].astype(int)
+            # data["HORA"] = data["HORA"].astype(str).str.split(":").str[0].astype(int)
 
             # KM: troca vírgula por ponto (padrão BR -> padrão numérico) e arredonda
             data["KM"] = (
@@ -80,7 +81,7 @@ def calcAccidents():
             MAX_RETRIES = 5
             for b in range(0, len(records_para_processar), BATCH_SIZE):
                 batch = records_para_processar[b : b + BATCH_SIZE]
-
+        
                 lats = [acidente["lat"] for acidente in batch]
                 lons = [acidente["lon"] for acidente in batch]
                 dates = [acidente["DATA"] for acidente in batch]
@@ -91,12 +92,11 @@ def calcAccidents():
                     datetimes = [pd.to_datetime(f"{acidente['DATA']} {acidente['HORA']}") for acidente in batch]
                     existentes = set(pd.to_datetime(weatherAtual["DATAHORA"]))
                     todos_presentes = all(dt in existentes for dt in datetimes)
-
+                    
                 if todos_presentes:
-                    for acidente in zip(batch):
-                        dados_no_momento_do_acidente = weatherAtual[(weatherAtual["DATA"] == acidente["date"]) & (weatherAtual["HORA"] == acidente["HORA"])].to_json()
+                    for acidente in batch:
+                        dados_no_momento_do_acidente = weatherAtual[(pd.to_datetime(weatherAtual["DATAHORA"]) == pd.to_datetime(f"{acidente['DATA']} {acidente['HORA']}"))].to_json()
                         newData[acidente["KM"]] += calculateGravity(acidente["VL"], acidente["VM"], acidente["VG"], acidente["VF"], acidente["NUMVEÍCULOS"]) * calculateFatorClimatico(dados_no_momento_do_acidente) * calculateRecencia(acidente) * getRiskFromTauTable(acidente)
-
                 else:
                     url = "https://archive-api.open-meteo.com/v1/archive"
                     params = {
@@ -150,7 +150,8 @@ def calcAccidents():
                         hourly = meteo_ponto["hourly"]
 
                         # timestamp exato do acidente, no mesmo formato que vem em hourly["time"]
-                        timestamp_alvo = f"{acidente['date']}T{acidente['hora']:02d}:00"
+                        hora_str = acidente['HORA'].split(':')[0]  # pega só "01" de "01:36:00"
+                        timestamp_alvo = f"{acidente['DATA']}T{hora_str}:00"
 
                         try:
                             h_idx = hourly["time"].index(timestamp_alvo)
@@ -200,7 +201,7 @@ def calcAccidents():
             for i in range(len(newData)):
                 savedData["risk"][i] = 10 / (1 + math.pow(math.e, -((newData[i] - media) / desvio_padrao)))
 
-            savedData["last_update"] = dt.today().strftime("%Y-%m-%d")
+            savedData["last_update"] = datetime.today().strftime("%Y-%m-%d")
                 
             # SALVAMENTO AUTOMÁTICO
             print("att")
@@ -240,10 +241,10 @@ def calculateFatorClimatico(clima: dict[str, any]):
     VIES_RISCO_CHUVA = 0.5
     VIES_RISCO_MAX_CHUVA = 20.0
 
-    return MAXIMO_DIA_SECO - (VIES_RISCO_CHUVA * min(MAXIMO_DIA_SECO, clima["chuva"] / VIES_RISCO_MAX_CHUVA))
+    return MAXIMO_DIA_SECO - (VIES_RISCO_CHUVA * min(MAXIMO_DIA_SECO, clima["CHUVA"] / VIES_RISCO_MAX_CHUVA))
 
 def calculateRecencia(acidente: pd.DataFrame):
-    data_comparar = datetime.strptime(acidente["date"], "%Y-%m-%d")
+    data_comparar = datetime.strptime(acidente["DATA"], "%Y-%m-%d")
     hoje = datetime.today()
     diferenca_anos = (hoje.year - data_comparar.year - ((hoje.month, hoje.day) < (data_comparar.month, data_comparar.day)))
 
