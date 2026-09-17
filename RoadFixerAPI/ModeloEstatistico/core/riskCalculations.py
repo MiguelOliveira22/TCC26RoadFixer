@@ -95,7 +95,7 @@ def calcAccidents():
                     
                 if todos_presentes:
                     for acidente in batch:
-                        dados_no_momento_do_acidente = weatherAtual[(pd.to_datetime(weatherAtual["DATAHORA"]) == pd.to_datetime(f"{acidente['DATA']} {acidente['HORA']}"))].to_json()
+                        dados_no_momento_do_acidente = weatherAtual[(pd.to_datetime(weatherAtual["DATAHORA"]) == pd.to_datetime(f"{acidente['DATA']} {acidente['HORA']}"))].iloc[0].to_dict()
                         newData[acidente["KM"]] += calculateGravity(acidente["VL"], acidente["VM"], acidente["VG"], acidente["VF"], acidente["NUMVEÍCULOS"]) * calculateFatorClimatico(dados_no_momento_do_acidente) * calculateRecencia(acidente) * getRiskFromTauTable(acidente)
                 else:
                     url = "https://archive-api.open-meteo.com/v1/archive"
@@ -118,10 +118,11 @@ def calcAccidents():
                     response = None
                     for tentativa in range(MAX_RETRIES):
                         try:
-                            response = requests.get(url, params=params, timeout=30)
+                            response = requests.get(url, params=params, timeout=60)
                         except requests.exceptions.RequestException as e:
-                            print(f"Erro ao chamar open-meteo no lote {b}: {e}")
-                            break
+                            print(f"Erro ao chamar open-meteo no lote {b}: {e} (tentativa {tentativa + 1}/{MAX_RETRIES})")
+                            time.sleep(2 ** tentativa)  # backoff exponencial: 1s, 2s, 4s...
+                            continue
 
                         if response.status_code == 429:
                             espera = int(response.headers.get("Retry-After", 60))
@@ -160,22 +161,22 @@ def calcAccidents():
                             continue
 
                         dados_no_momento_do_acidente = {
-                            "hora": hourly["time"][h_idx],
-                            "chuva": hourly["precipitation"][h_idx],
-                            "vento": hourly["wind_speed_10m"][h_idx],
-                            "rajada": hourly["wind_gusts_10m"][h_idx],
-                            "codigo_tempo": hourly["weather_code"][h_idx],
+                            "HORA": hourly["time"][h_idx],
+                            "CHUVA": hourly["precipitation"][h_idx],
+                            "VENTO": hourly["wind_speed_10m"][h_idx],
+                            "RAJADA": hourly["wind_gusts_10m"][h_idx],
+                            "CODIGO_TEMPO": hourly["weather_code"][h_idx],
                         }
 
                         newData[acidente["KM"]] += calculateGravity(acidente["VL"], acidente["VM"], acidente["VG"], acidente["VF"], acidente["NUMVEÍCULOS"]) * calculateFatorClimatico(dados_no_momento_do_acidente) * calculateRecencia(acidente) * getRiskFromTauTable(acidente)
-
                         novos_dados = pd.DataFrame([{
                             'DATAHORA': pd.to_datetime(f"{acidente['DATA']} {acidente['HORA']}"),
-                            'CHUVA': dados_no_momento_do_acidente["chuva"],
-                            'VENTO': dados_no_momento_do_acidente["vento"],
-                            'RAJADA': dados_no_momento_do_acidente["rajada"],
-                            'CODIGO_TEMPO': dados_no_momento_do_acidente["codigo_tempo"]
+                            'CHUVA': dados_no_momento_do_acidente["CHUVA"],
+                            'VENTO': dados_no_momento_do_acidente["VENTO"],
+                            'RAJADA': dados_no_momento_do_acidente["RAJADA"],
+                            'CODIGO_TEMPO': dados_no_momento_do_acidente["CODIGO_TEMPO"]
                         }])
+                        print(novos_dados)
 
                         # 1. Se o arquivo já existe, lê e junta os dados
                         if os.path.exists(fileWeather):
