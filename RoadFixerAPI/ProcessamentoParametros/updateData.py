@@ -10,9 +10,9 @@ import ModeloEstatistico.core.riskCalculations as calc
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-def prepararPastas(ano):
-    pastaData = BASE_DIR / "ModeloEstatistico/data/accidents/" / str(ano)
-    pastaWeather = BASE_DIR / "weather-data" / str(ano)
+def prepararPastas():
+    pastaData = BASE_DIR / "data/accidents"
+    pastaWeather = BASE_DIR / "data/weather-data"
 
     return pastaData, pastaWeather
 
@@ -109,8 +109,8 @@ def atualizarARTESP():
         f"acidentes_{ano}.csv"
     )
 
-    arquivoCompleto = pastaData / f"{ano}.csv"
-    arquivoAnhanguera = pastaData / f"p{ano}.csv"
+    arquivoCompleto = pastaData / "non_Processed" / f"{ano}.csv"
+    arquivoAnhanguera = pastaData / "processed" / f"p{ano}.csv"
 
     try:
         print(f"[ARTESP] Baixando dados de {ano}...")
@@ -160,7 +160,7 @@ def atualizarSistema():
     ano = datetime.now().year
 
     print(f"\n===== ATUALIZAÇÃO DO SISTEMA {ano} =====")
-    prepararPastas(ano)
+    prepararPastas()
 
     print("\n===== Realizando o Calculo dos Riscos =====")
     calc.calcAccidents()
@@ -183,7 +183,7 @@ async def atualizacaoDiaria():
             print(f"[SCHEDULER] Erro na atualização: {e}")
 
         agora = datetime.now()
-        proxima = (agora + timedelta(days=1)).replace(hour=3, minute=0, second=0, microsecond=0)
+        proxima = (agora + timedelta(days=1)).replace(hour=23, minute=50, second=0, microsecond=0)
         espera = (proxima - datetime.now()).total_seconds()
 
         print(f"[SCHEDULER] Próxima atualização: {proxima.strftime('%d/%m/%Y %H:%M:%S')}")
