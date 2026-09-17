@@ -1,0 +1,33 @@
+{
+  "modelo": "ExtraTreesRegressor",
+  "metrica_de_escolha": "severidade real capturada no top 10% de km priorizados",
+  "melhores_parametros": {
+    "max_depth": 8,
+    "max_features": 1.0,
+    "min_samples_leaf": 8,
+    "n_estimators": 100
+  },
+  "validacao_temporal": 0.3891,
+  "teste_ano_final": 2025,
+  "captura_no_teste": 0.3595,
+  "mae_no_teste": 1.2547,
+  "variaveis": [
+    "KM",
+    "acidentes_30d",
+    "severidade_30d",
+    "acidentes_90d",
+    "severidade_90d",
+    "acidentes_365d",
+    "severidade_365d",
+    "mes",
+    "ano",
+    "fim_de_semana",
+    "feriado",
+    "fluxo_total",
+    "fluxo_pesados",
+    "percentual_pesados",
+    "chuva_mm",
+    "vento_kmh"
+  ],
+  "alerta": "O ranking mede risco histórico. Antes de uso operacional, inclua exposição ao tráfego e valide com equipe de segurança viária."
+}
