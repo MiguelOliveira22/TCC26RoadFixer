@@ -1,0 +1,2 @@
+km_inicial,km_final,n_faixas,limite_velocidade_kmh,declive_percent,raio_curva_m,iluminacao,acostamento_m,acessos_por_km
+90,100,3,100,2.1,800,1,2.5,0.4

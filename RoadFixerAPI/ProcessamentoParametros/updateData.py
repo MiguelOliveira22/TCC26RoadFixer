@@ -159,10 +159,10 @@ def atualizarARTESP():
 def atualizarSistema():
     ano = datetime.now().year
 
-    print(f"\n===== ATUALIZAÇÃO DO SISTEMA {ano} =====")
+    print(f"\n===== ATUALIZAÇÃO DO SISTEMA {ano} =====\n")
     prepararPastas()
 
-    print("\n===== Realizando o Calculo dos Riscos =====")
+    print("\n===== Realizando o Calculo dos Riscos =====\n")
     calc.calcAccidents()
 
     artesp_ok = atualizarARTESP()
