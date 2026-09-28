@@ -87,6 +87,11 @@ def add_traffic(panel: pd.DataFrame, path: Path | list[Path]) -> pd.DataFrame:
     traffic["KM"] = traffic["KM"].round().astype(int)
     traffic = traffic.groupby(["PERIODO", "KM"], as_index=False).sum(numeric_only=True)
     traffic["percentual_pesados"] = (traffic["fluxo_pesados"] / traffic["fluxo_total"].clip(lower=1)).clip(0, 1)
+    # A medição fechada do mês-alvo não existe quando a previsão é emitida.
+    # Usar o mesmo mês daria ao treino uma informação que não estará disponível
+    # em produção. O fluxo do último mês fechado é uma aproximação disponível e
+    # reproduzível até que exista uma previsão de tráfego dedicada.
+    traffic["PERIODO"] = traffic["PERIODO"] + 1
     return _nearest_by_month(panel, traffic, ["fluxo_total", "fluxo_pesados", "percentual_pesados"])
 
 
@@ -303,7 +308,7 @@ def enrich(panel: pd.DataFrame, external_dir: Path | None, inmet_dir: Path | Non
         raw_files = sorted((external_dir / "raw").glob("contagem_diaria_*.csv")) if (external_dir / "raw").exists() else []
         if raw_files:
             result = add_traffic(result, raw_files)
-    malha_path, access_path = external_dir / "raw" / "cci_malha_rodoviaria_sp.xlsx", external_dir / "raw" / "acessos_rodoviarios.xlsx"
+    malha_path, access_path = external_dir / "raw" / "cci_malha_rodoviaria_sp.csv", external_dir / "raw" / "acessos_rodoviarios.csv"
     if malha_path.exists() and access_path.exists():
         result = add_artesp_infrastructure(result, malha_path, access_path)
     sources = (("traffic.csv", add_traffic), ("weather.csv", add_weather), ("speed.csv", add_speed),

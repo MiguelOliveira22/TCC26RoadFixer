@@ -6,13 +6,17 @@ from pathlib import Path
 import asyncio
 import re
 import os
-import ModeloEstatistico.core.riskCalculations as calc
+from RoadFixerAPI.ModeloEstatistico.core import riskCalculations as fallback_risk
+from RoadFixerAPI.ModeloEstatistico.grid_search import run as run_risk_model
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 def prepararPastas():
     pastaData = BASE_DIR / "data/accidents"
     pastaWeather = BASE_DIR / "data/weather-data"
+    (pastaData / "processed").mkdir(parents=True, exist_ok=True)
+    (pastaData / "non_Processed").mkdir(parents=True, exist_ok=True)
+    pastaWeather.mkdir(parents=True, exist_ok=True)
 
     return pastaData, pastaWeather
 
@@ -100,7 +104,7 @@ def normalizar_subclasse(s):
 # ========================================================
 def atualizarARTESP():
     ano = datetime.now().year
-    pastaData, _ = prepararPastas(ano)
+    pastaData, _ = prepararPastas()
 
     URL = (
         f"https://dadosabertos.artesp.sp.gov.br/dataset/"
@@ -129,9 +133,8 @@ def atualizarARTESP():
             df_expanded = pd.json_normalize(df_dicts).fillna(0)
 
             data = pd.concat([data, df_expanded], axis=1)
-            data.drop(columns="VEICULOS_ENVOLVIDOS")
-            
-            data["NUMVEÍCULOS"] = data.loc[:, 'AUTOMÓVEL' : "CARRETINHA"].sum(axis=1)
+            data = data.drop(columns="VEICULOS_ENVOLVIDOS")
+            data["NUMVEÍCULOS"] = df_expanded.sum(axis=1)
 
         data["RODOVIA"] = data["RODOVIA"].astype(str).str.upper().str.strip()
         data.to_csv(arquivoCompleto, index=False, encoding="utf-8")
@@ -143,7 +146,7 @@ def atualizarARTESP():
             if "HORA" in anhanguera.columns:
                 anhanguera = anhanguera.sort_values(["DATA", "HORA"])
 
-        colunas_remover = ["_id", "VITIMAS_SEM_INFO", "VITIMA_ILESA", "VISIBILIDADE", "CONDICAO_METERIOLOGICA"]
+        colunas_remover = ["_id", "VITIMAS_SEM_INFO", "VISIBILIDADE", "CONDICAO_METERIOLOGICA"]
         anhanguera = anhanguera.drop(columns=[col for col in colunas_remover if col in anhanguera.columns])
 
         anhanguera.to_csv(arquivoAnhanguera, index=False, encoding="utf-8")
@@ -162,13 +165,24 @@ def atualizarSistema():
     print(f"\n===== ATUALIZAÇÃO DO SISTEMA {ano} =====\n")
     prepararPastas()
 
-    print("\n===== Realizando o Calculo dos Riscos =====\n")
-    calc.calcAccidents()
-
     artesp_ok = atualizarARTESP()
 
     if artesp_ok:
-        print("[UPDATE] Dados atualizados com sucesso.")
+        print("\n===== Treinando e publicando previsão de risco =====\n")
+        try:
+            model_dir = BASE_DIR / "ModeloEstatistico"
+            run_risk_model(
+                data_dir=BASE_DIR / "data" / "accidents" / "processed",
+                output=model_dir / "data_tau" / "grid_search_report.json",
+                top_fraction=0.10,
+                external_dir=model_dir / "data_tau" / "external",
+            )
+            print("[UPDATE] Dados e previsão atualizados com sucesso.")
+        except Exception as error:
+            # A API não fica sem resposta se uma fonte contextual estiver
+            # indisponível; o payload identifica claramente este fallback.
+            print(f"[UPDATE] Falha no modelo temporal: {error}. Gerando fallback histórico.")
+            fallback_risk.calcAccidents()
         return True
 
     print("[UPDATE] Houve erro na atualização.")

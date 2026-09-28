@@ -17,7 +17,7 @@ async function getRiskData() {
   const res = await fetch(apiPath + "riskData/");
   const data = await res.json();
   console.log(data)
-  const formatted = data['risk'].map((valor, index) => ({ KM: String(index + 1), risco: valor }));
+  const formatted = data['risk'].map((valor, index) => ({ KM: String(index), risco: valor }));
   return formatted;
 }
 

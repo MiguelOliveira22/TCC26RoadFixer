@@ -3,7 +3,7 @@
 Coloque nesta pasta os arquivos abaixo e execute:
 
 ```powershell
-python RoadFixerAPI/ModeloEstatistico/grid_search.py --external-dir RoadFixerAPI/ModeloEstatistico/data/external
+python -m RoadFixerAPI.ModeloEstatistico.grid_search --external-dir RoadFixerAPI/ModeloEstatistico/data_tau/external
 ```
 
 Todos os arquivos são opcionais. A ausência de uma fonte não interrompe a execução.
@@ -16,7 +16,7 @@ Os arquivos oficiais `raw/cci_malha_rodoviaria_sp.xlsx` e `raw/acessos_rodoviari
 
 | Arquivo | Campos obrigatórios | Fonte e uso |
 | --- | --- | --- |
-| `traffic.csv` | `data,km,volume_total` | Dados de SAT ou praças da ARTESP. Aceita `veiculos_pesados` opcional. Para cada km, o sistema usa o contador mais próximo no mesmo mês. |
+| `traffic.csv` | `data,km,volume_total` | Dados de SAT ou praças da ARTESP. Aceita `veiculos_pesados` opcional. Para cada km, o sistema usa o contador mais próximo do mês anterior, evitando vazamento de informação. |
 | `weather.csv` | `data,precipitacao_mm` | INMET ou Open-Meteo; `vento_kmh` e `visibilidade_km` são opcionais. Use estações/grades próximas à rodovia. |
 | `speed.csv` | `data,km,velocidade_media_kmh` | Concessionária ou fornecedor de mobilidade autorizado. `velocidade_livre_kmh` é opcional; com ela é calculado o índice de congestionamento. |
 | `works.csv` | `inicio,fim,km_inicial,km_final` | Programação de obras da ARTESP ou informação da concessionária. `intensidade` é opcional, de 0 a 1. |

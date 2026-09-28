@@ -31,6 +31,8 @@ def assignRoutesAPI(api: FastAPI):
 
     @api.get("/riskData")
     async def getRiskData():
-        filepath = BASE_DIR / "accident-history" / "risk" / "testeSalvo.json"
+        # savedData é a saída operacional atualizada pelo modelo; testeSalvo
+        # permanece apenas como fixture histórica e não deve ir para o painel.
+        filepath = BASE_DIR / "accident-history" / "risk" / "savedData.json"
         with open(filepath, encoding="utf-8") as file:
             return json.load(file)
