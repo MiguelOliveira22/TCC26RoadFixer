@@ -10,6 +10,7 @@ from datetime import date, timedelta
 from pathlib import Path
 from typing import Iterable
 import re
+import unicodedata
 
 import pandas as pd
 from dateutil.easter import easter
@@ -26,11 +27,27 @@ def _read(path: Path) -> pd.DataFrame:
 
 
 def _column(data: pd.DataFrame, alternatives: Iterable[str]) -> str | None:
-    lookup = {str(name).strip().upper(): name for name in data.columns}
+    # Os arquivos da ARTESP alternam entre ``KM_INICIAL``, ``KM INICIAL`` e
+    # cabeçalhos acentuados. Comparar o texto literalmente faria a ingestão
+    # depender apenas da extensão/formato baixado no dia.
+    def normalized(value: object) -> str:
+        value = unicodedata.normalize("NFKD", str(value)).encode("ascii", "ignore").decode("ascii")
+        return re.sub(r"[^A-Z0-9]", "", value.upper())
+
+    lookup = {normalized(name): name for name in data.columns}
     for name in alternatives:
-        if name.upper() in lookup:
-            return lookup[name.upper()]
+        if normalized(name) in lookup:
+            return lookup[normalized(name)]
     return None
+
+
+def _read_tabular(path: Path, sheet_name: str | None = None) -> pd.DataFrame:
+    """Lê CSV oficial ou a versão XLSX legada da mesma fonte."""
+    if path.suffix.lower() in {".xlsx", ".xls"}:
+        # ``sheet_name=None`` devolve um dict com todas as abas; para o
+        # cadastro de acessos queremos a primeira aba, como no pandas padrão.
+        return pd.read_excel(path) if sheet_name is None else pd.read_excel(path, sheet_name=sheet_name)
+    return _read(path)
 
 
 def _month(value: pd.Series) -> pd.Series:
@@ -87,6 +104,9 @@ def add_traffic(panel: pd.DataFrame, path: Path | list[Path]) -> pd.DataFrame:
     traffic["KM"] = traffic["KM"].round().astype(int)
     traffic = traffic.groupby(["PERIODO", "KM"], as_index=False).sum(numeric_only=True)
     traffic["percentual_pesados"] = (traffic["fluxo_pesados"] / traffic["fluxo_total"].clip(lower=1)).clip(0, 1)
+    # A medição fechada do mês-alvo ainda não existe quando a previsão é
+    # publicada; usar o mesmo mês no treino seria vazamento temporal.
+    traffic["PERIODO"] = traffic["PERIODO"] + 1
     return _nearest_by_month(panel, traffic, ["fluxo_total", "fluxo_pesados", "percentual_pesados"])
 
 
@@ -214,13 +234,16 @@ def add_infrastructure(panel: pd.DataFrame, path: Path) -> pd.DataFrame:
 
 
 def add_artesp_infrastructure(panel: pd.DataFrame, malha_path: Path, access_path: Path) -> pd.DataFrame:
-    """Extrai atributos úteis dos XLSX de Malha e Acessos da ARTESP.
+    """Extrai atributos úteis dos CSV/XLSX de Malha e Acessos da ARTESP.
 
     A malha informa tipo de pista e administração. O cadastro de acessos é
     convertido em densidade por km e indicadores de condição/conformidade.
     """
     result = panel.copy()
-    malha = pd.read_excel(malha_path, sheet_name="MALHA_RODOVIARIA_SP")
+    malha = _read_tabular(
+        malha_path,
+        sheet_name="MALHA_RODOVIARIA_SP" if malha_path.suffix.lower() in {".xlsx", ".xls"} else None,
+    )
     road = _column(malha, ("RODOVIA",))
     malha = malha[malha[road].astype(str).str.replace(r"[^A-Z0-9]", "", regex=True).eq("SP330")]
     result["pista_dupla"] = 0.0
@@ -234,7 +257,7 @@ def add_artesp_infrastructure(panel: pd.DataFrame, malha_path: Path, access_path
         if administration:
             result.loc[mask, "administracao_artesp"] = float(str(segment[administration]).upper() == "ARTESP")
 
-    access = pd.read_excel(access_path, dtype=str)
+    access = _read_tabular(access_path).astype(str)
     road = _column(access, ("RODOVIA",))
     access = access[access[road].astype(str).str.replace(r"[^A-Z0-9]", "", regex=True).eq("SP330")].copy()
     code = next((column for column in access.columns if "ACESSO" in str(column).upper() and "C" in str(column).upper()), None)
@@ -303,8 +326,16 @@ def enrich(panel: pd.DataFrame, external_dir: Path | None, inmet_dir: Path | Non
         raw_files = sorted((external_dir / "raw").glob("contagem_diaria_*.csv")) if (external_dir / "raw").exists() else []
         if raw_files:
             result = add_traffic(result, raw_files)
-    malha_path, access_path = external_dir / "raw" / "cci_malha_rodoviaria_sp.xlsx", external_dir / "raw" / "acessos_rodoviarios.xlsx"
-    if malha_path.exists() and access_path.exists():
+    raw_dir = external_dir / "raw"
+    malha_path = next(
+        (path for path in (raw_dir / "cci_malha_rodoviaria_sp.xlsx", raw_dir / "cci_malha_rodoviaria_sp-MALHA_RODOVIARIA_SP.csv") if path.exists()),
+        None,
+    )
+    access_path = next(
+        (path for path in (raw_dir / "acessos_rodoviarios.xlsx", raw_dir / "acessos_rodoviarios.csv") if path.exists()),
+        None,
+    )
+    if malha_path and access_path:
         result = add_artesp_infrastructure(result, malha_path, access_path)
     sources = (("traffic.csv", add_traffic), ("weather.csv", add_weather), ("speed.csv", add_speed),
                ("works.csv", add_works), ("infrastructure.csv", add_infrastructure))

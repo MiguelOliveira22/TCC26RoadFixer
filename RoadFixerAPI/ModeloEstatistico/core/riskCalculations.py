@@ -1,13 +1,19 @@
+<<<<<<< Updated upstream
 from datetime import datetime
+=======
+"""Fallback histórico local para o painel de risco."""
+
+from __future__ import annotations
+
+from datetime import datetime, timezone
+import json
+import math
+>>>>>>> Stashed changes
 from pathlib import Path
 
-import requests
-import json
 import pandas as pd
-import time
-import statistics
-import math
 
+<<<<<<< Updated upstream
 filepath = Path("./ModeloEstatistico/data")
 filepathRisk = Path("./API/content/accident-history")
 
@@ -15,32 +21,43 @@ TAUTABLE = pd.read_csv(str(filepath) + "/tau.csv", encoding="utf-8")
 
 def calcAccidents():
     directory = Path(filepath, "accidents")
+=======
 
-    with open(
-        Path(filepathRisk, "risk/savedData.json"),
-        "r+",
-        encoding="utf-8",
-    ) as savedatafile:
-        countFilesData = 0
-        savedData = json.load(savedatafile)
-        newData = [0] * len(savedData["risk"])
+BASE_DIR = Path(__file__).resolve().parents[2]
+DATA_DIR = BASE_DIR / "data" / "accidents" / "processed"
+TAU_PATH = BASE_DIR / "ModeloEstatistico" / "data_tau" / "tau.csv"
+RISK_PATH = BASE_DIR / "API" / "content" / "accident-history" / "risk" / "savedData.json"
 
+>>>>>>> Stashed changes
+
+def calculateGravity(numLeve: float, numMedia: float, numGrave: float, numFatal: float, numVeiculos: float = 0) -> float:
+    """Peso de severidade: 1, 2, 5 e 13; veículos não alteram a gravidade."""
+    light, moderate, serious, fatal = (max(0.0, float(value or 0)) for value in (numLeve, numMedia, numGrave, numFatal))
+    return 1.0 + light + 2.0 * moderate + 5.0 * serious + 13.0 * fatal
+
+<<<<<<< Updated upstream
         for file_path in directory.iterdir():
             print(f"Lendo arquivo: {file_path.name}")
+=======
 
-            # Pulando arquivos ocultos, diretórios acidentais (.DS_Store, etc)
-            # e qualquer coisa que não seja .csv
-            if not file_path.is_file() or file_path.suffix.lower() != ".csv":
-                continue
+def calculateFatorClimatico(clima: dict[str, object]) -> float:
+    """Mantido por compatibilidade: chuva só aumenta, nunca reduz, o índice."""
+    try:
+        rainfall = max(0.0, float(clima.get("CHUVA", clima.get("chuva", 0))))
+    except (TypeError, ValueError):
+        rainfall = 0.0
+    return 1.0 + 0.5 * min(1.0, rainfall / 20.0)
+>>>>>>> Stashed changes
 
-            # pandas já lê o CSV inteiro e monta uma tabela (DataFrame),
-            # usando a primeira linha do arquivo como nome das colunas
-            data = pd.read_csv(file_path, encoding="utf-8")
 
-            # Evita erro caso o arquivo lido esteja sem registros
-            if data.empty:
-                continue
+def calculateRecencia(acidente: dict[str, object]) -> float:
+    value = str(acidente.get("DATA", acidente.get("date")))
+    occurred = datetime.strptime(value.split("T")[0].split(" ")[0], "%Y-%m-%d").date()
+    years = (datetime.now().date() - occurred).days / 365.2425
+    return math.exp(-math.log(2) * years / 3.0)
 
+
+<<<<<<< Updated upstream
             countFilesData += 1
 
             # 1. Monta as colunas derivadas direto no DataFrame (bem mais
@@ -211,4 +228,44 @@ def calculateRecencia(acidente: pd.DataFrame):
     diferenca_anos = (hoje.year - data_comparar.year - ((hoje.month, hoje.day) < (data_comparar.month, data_comparar.day)))
 
     return math.pow(math.e, -((math.log(2, math.e) / 3) * diferenca_anos))
+=======
+def calcAccidents() -> dict[str, object]:
+    """Gera fallback local no mesmo contrato publicado pela API."""
+    files = sorted(DATA_DIR.glob("p*.csv"))
+    if not files:
+        raise FileNotFoundError(f"Nenhum acidente processado em {DATA_DIR}")
+    tau = pd.read_csv(TAU_PATH, encoding="utf-8")
+    frames = []
+    required = {"DATA", "KM", "VITIMA_LEVE", "VITIMA_MODERADA", "VITIMA_GRAVE", "VITIMA_FATAL"}
+    for path in files:
+        data = pd.read_csv(path, encoding="utf-8")
+        if required.difference(data.columns):
+            continue
+        data["KM"] = pd.to_numeric(data["KM"].astype(str).str.replace(",", ".", regex=False), errors="coerce").round()
+        for column in required - {"DATA", "KM"}:
+            data[column] = pd.to_numeric(data[column], errors="coerce").fillna(0)
+        data = data.dropna(subset=["KM"]).copy()
+        data["score"] = 1 + data["VITIMA_LEVE"] + 2 * data["VITIMA_MODERADA"] + 5 * data["VITIMA_GRAVE"] + 13 * data["VITIMA_FATAL"]
+        if {"CLASSE", "SUBCLASSE"}.issubset(data.columns):
+            data = data.merge(tau, on=["CLASSE", "SUBCLASSE"], how="left")
+            data["score"] *= data["TAU"].fillna(1.0).clip(lower=0)
+        data["score"] *= data["DATA"].map(lambda value: calculateRecencia({"DATA": value}))
+        frames.append(data[["KM", "score"]])
+    if not frames:
+        raise ValueError("Nenhum arquivo possui as colunas mínimas de vítimas.")
+>>>>>>> Stashed changes
 
+    score = pd.concat(frames).groupby("KM")["score"].sum()
+    raw = pd.Series(0.0, index=range(int(score.index.max()) + 1))
+    raw.loc[score.index.astype(int)] = score.to_numpy()
+    ceiling = float(raw.quantile(0.95))
+    risk = raw.clip(upper=ceiling).div(ceiling).mul(10) if ceiling > 0 else raw
+    payload = {
+        "last_update": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "periodo_previsto": None,
+        "metodo": "fallback histórico ponderado; previsão temporal indisponível",
+        "risk": risk.round(3).tolist(),
+    }
+    RISK_PATH.parent.mkdir(parents=True, exist_ok=True)
+    RISK_PATH.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
+    return {"status": "fallback histórico atualizado", "km": len(risk)}
