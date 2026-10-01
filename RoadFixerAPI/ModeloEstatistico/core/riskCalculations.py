@@ -9,12 +9,13 @@ import time
 import statistics
 import math
 
-filepath = Path("./data/accidents/processed")
-filepathTau = Path("./ModeloEstatistico/data_tau")
-filepathRisk = Path("./API/content/accident-history")
-filepathWeather = Path("./data/weather-data")
+ROADFIXER_API_DIR = Path(__file__).resolve().parents[2]
+filepath = ROADFIXER_API_DIR / "data" / "accidents" / "processed"
+filepathTau = ROADFIXER_API_DIR / "ModeloEstatistico" / "data_tau"
+filepathRisk = ROADFIXER_API_DIR / "API" / "content" / "accident-history"
+filepathWeather = ROADFIXER_API_DIR / "data" / "weather-data"
 
-TAUTABLE = pd.read_csv(str(filepathTau) + "/tau.csv", encoding="utf-8")
+TAUTABLE = pd.read_csv(filepathTau / "tau.csv", encoding="utf-8")
 
 def calcAccidents():
     directory = Path(filepath)
@@ -242,7 +243,10 @@ def calculateFatorClimatico(clima: dict[str, any]):
     VIES_RISCO_CHUVA = 0.5
     VIES_RISCO_MAX_CHUVA = 20.0
 
-    return MAXIMO_DIA_SECO - (VIES_RISCO_CHUVA * min(MAXIMO_DIA_SECO, clima["CHUVA"] / VIES_RISCO_MAX_CHUVA))
+    # Chuva deve elevar o peso do acidente no fallback histórico. O fator é
+    # limitado a 1.5 para evitar que um único registro domine a escala.
+    chuva = max(0.0, float(clima.get("CHUVA", 0) or 0))
+    return MAXIMO_DIA_SECO + (VIES_RISCO_CHUVA * min(MAXIMO_DIA_SECO, chuva / VIES_RISCO_MAX_CHUVA))
 
 def calculateRecencia(acidente: pd.DataFrame):
     data_comparar = datetime.strptime(acidente["DATA"], "%Y-%m-%d")

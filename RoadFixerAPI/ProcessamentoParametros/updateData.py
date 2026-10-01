@@ -1,11 +1,12 @@
 import pandas as pd
 import requests
 from io import StringIO
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 import asyncio
 import re
 import os
+import json
 from RoadFixerAPI.ModeloEstatistico.core import riskCalculations as fallback_risk
 from RoadFixerAPI.ModeloEstatistico.grid_search import run as run_risk_model
 
@@ -179,10 +180,34 @@ def atualizarSistema():
             )
             print("[UPDATE] Dados e previsão atualizados com sucesso.")
         except Exception as error:
-            # A API não fica sem resposta se uma fonte contextual estiver
-            # indisponível; o payload identifica claramente este fallback.
+            # A API continua disponível, mas a resposta deixa explícito que o
+            # índice não foi produzido pelo modelo de exposição ajustada.
             print(f"[UPDATE] Falha no modelo temporal: {error}. Gerando fallback histórico.")
             fallback_risk.calcAccidents()
+            risk_path = BASE_DIR / "API" / "content" / "accident-history" / "risk" / "savedData.json"
+            if risk_path.exists():
+                payload = json.loads(risk_path.read_text(encoding="utf-8"))
+                now = datetime.now(timezone.utc)
+                next_month = (now.replace(day=1) + timedelta(days=32)).replace(day=1)
+                payload.update({
+                    "last_update": now.strftime("%Y-%m-%dT%H:%M:%SZ"),
+                    "periodo_previsto": next_month.strftime("%Y-%m"),
+                    "metodo": "Fallback heurístico histórico - não ajustado por veículos-km",
+                    "estado_modelo": "fallback",
+                    "aviso": f"O modelo principal falhou ({type(error).__name__}); este índice usa a regra histórica.",
+                    "trechos": [],
+                    "faixa_previsao": {
+                        "aviso": "O fallback não gera faixa de previsão calibrada."
+                    },
+                    "metricas": {},
+                    "qualidade_dados": {
+                        "exposicao_veiculo_km": "não aplicada no fallback",
+                        "validacao_operacional": "necessária",
+                    },
+                })
+                temporary_path = risk_path.with_suffix(".json.tmp")
+                temporary_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
+                temporary_path.replace(risk_path)
         return True
 
     print("[UPDATE] Houve erro na atualização.")

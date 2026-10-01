@@ -87,12 +87,22 @@ def add_traffic(panel: pd.DataFrame, path: Path | list[Path]) -> pd.DataFrame:
     traffic["KM"] = traffic["KM"].round().astype(int)
     traffic = traffic.groupby(["PERIODO", "KM"], as_index=False).sum(numeric_only=True)
     traffic["percentual_pesados"] = (traffic["fluxo_pesados"] / traffic["fluxo_total"].clip(lower=1)).clip(0, 1)
+    # O painel representa células de 1 km. Passagens mensais multiplicadas por
+    # essa extensão aproximam a exposição em veículos-km. A medida do mês-alvo
+    # será usada só para construir o rótulo; não entra como preditor do mês.
+    traffic["exposicao_veiculo_km"] = traffic["fluxo_total"].clip(lower=0)
+    traffic["mes_origem_fluxo"] = traffic["PERIODO"].map(lambda value: value.ordinal)
+    result = _nearest_by_month(panel, traffic, ["exposicao_veiculo_km"])
     # A medição fechada do mês-alvo não existe quando a previsão é emitida.
     # Usar o mesmo mês daria ao treino uma informação que não estará disponível
     # em produção. O fluxo do último mês fechado é uma aproximação disponível e
     # reproduzível até que exista uma previsão de tráfego dedicada.
     traffic["PERIODO"] = traffic["PERIODO"] + 1
-    return _nearest_by_month(panel, traffic, ["fluxo_total", "fluxo_pesados", "percentual_pesados"])
+    result = _nearest_by_month(result, traffic, [
+        "fluxo_total", "fluxo_pesados", "percentual_pesados", "mes_origem_fluxo"
+    ])
+    result["fluxo_disponivel"] = result["mes_origem_fluxo"].notna().astype(float)
+    return result
 
 
 def add_weather(panel: pd.DataFrame, path: Path) -> pd.DataFrame:
@@ -219,13 +229,13 @@ def add_infrastructure(panel: pd.DataFrame, path: Path) -> pd.DataFrame:
 
 
 def add_artesp_infrastructure(panel: pd.DataFrame, malha_path: Path, access_path: Path) -> pd.DataFrame:
-    """Extrai atributos úteis dos XLSX de Malha e Acessos da ARTESP.
+    """Extrai atributos úteis dos CSVs exportados das planilhas da ARTESP.
 
     A malha informa tipo de pista e administração. O cadastro de acessos é
     convertido em densidade por km e indicadores de condição/conformidade.
     """
     result = panel.copy()
-    malha = pd.read_excel(malha_path, sheet_name="MALHA_RODOVIARIA_SP")
+    malha = _read(malha_path)
     road = _column(malha, ("RODOVIA",))
     malha = malha[malha[road].astype(str).str.replace(r"[^A-Z0-9]", "", regex=True).eq("SP330")]
     result["pista_dupla"] = 0.0
@@ -233,13 +243,17 @@ def add_artesp_infrastructure(panel: pd.DataFrame, malha_path: Path, access_path
     start, end = _column(malha, ("KM_INICIAL",)), _column(malha, ("KM_FINAL",))
     track, administration = _column(malha, ("PISTA_ATUAL",)), _column(malha, ("ADMINISTRACAO",))
     for _, segment in malha.iterrows():
-        mask = result["KM"].between(float(segment[start]), float(segment[end]))
+        start_km = pd.to_numeric(str(segment[start]).replace(",", "."), errors="coerce")
+        end_km = pd.to_numeric(str(segment[end]).replace(",", "."), errors="coerce")
+        if pd.isna(start_km) or pd.isna(end_km):
+            continue
+        mask = result["KM"].between(float(start_km), float(end_km))
         result.loc[mask, "pista_dupla"] = float(str(segment[track]).upper() == "DUPLA") if track else 0.0
         result.loc[mask, "trecho_planejado"] = float(str(segment[track]).upper() == "PLANEJADA") if track else 0.0
         if administration:
             result.loc[mask, "administracao_artesp"] = float(str(segment[administration]).upper() == "ARTESP")
 
-    access = pd.read_excel(access_path, dtype=str)
+    access = _read(access_path).astype(str)
     road = _column(access, ("RODOVIA",))
     access = access[access[road].astype(str).str.replace(r"[^A-Z0-9]", "", regex=True).eq("SP330")].copy()
     code = next((column for column in access.columns if "ACESSO" in str(column).upper() and "C" in str(column).upper()), None)
@@ -265,8 +279,8 @@ def add_artesp_infrastructure(panel: pd.DataFrame, malha_path: Path, access_path
     conforms = next((column for column in access.columns if "ATENDE" in str(column).upper() and "NORMA" in str(column).upper()), None)
     condition = next((column for column in access.columns if "CONSERVA" in str(column).upper()), None)
     activity = next((column for column in access.columns if "ATIVIDADE" in str(column).upper()), None)
-    access["acessos_nao_autorizados"] = (~access[authorized].astype(str).str.upper().str.startswith("SIM")).astype(int) if authorized else 0
-    access["acessos_nao_conformes"] = (~access[conforms].astype(str).str.upper().str.startswith("SIM")).astype(int) if conforms else 0
+    access["acessos_nao_autorizados"] = access[authorized].astype(str).str.strip().str.upper().isin({"NAO", "NÃO"}).astype(int) if authorized else 0
+    access["acessos_nao_conformes"] = access[conforms].astype(str).str.strip().str.upper().isin({"NAO", "NÃO"}).astype(int) if conforms else 0
     access["acessos_conservacao_ruim"] = access[condition].astype(str).str.upper().str.contains("RUIM", na=False).astype(int) if condition else 0
     access["acessos_comerciais"] = access[activity].astype(str).str.upper().str.startswith("A").astype(int) if activity else 0
     counts = access.groupby("KM", as_index=False).agg(
@@ -308,7 +322,8 @@ def enrich(panel: pd.DataFrame, external_dir: Path | None, inmet_dir: Path | Non
         raw_files = sorted((external_dir / "raw").glob("contagem_diaria_*.csv")) if (external_dir / "raw").exists() else []
         if raw_files:
             result = add_traffic(result, raw_files)
-    malha_path, access_path = external_dir / "raw" / "cci_malha_rodoviaria_sp.csv", external_dir / "raw" / "acessos_rodoviarios.csv"
+    malha_path = external_dir / "raw" / "cci_malha_rodoviaria_sp-MALHA_RODOVIARIA_SP.csv"
+    access_path = external_dir / "raw" / "acessos_rodoviarios.csv"
     if malha_path.exists() and access_path.exists():
         result = add_artesp_infrastructure(result, malha_path, access_path)
     sources = (("traffic.csv", add_traffic), ("weather.csv", add_weather), ("speed.csv", add_speed),

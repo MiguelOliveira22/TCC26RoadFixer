@@ -7,13 +7,13 @@ python -m pip install -r requirements.txt
 python -m RoadFixerAPI.ModeloEstatistico.grid_search
 ```
 
-O processo usa os CSVs processados em `RoadFixerAPI/data/accidents/processed`. Para cada km e mês, ele prevê a severidade no mês seguinte com o histórico de 30, 90 e 365 dias. A busca escolhe os parâmetros pela **média da captura mensal** de severidade no topo de 10% dos km. O último ano completo fica separado como teste final; um ano corrente parcial é usado apenas no refit final para prever o próximo mês.
+O processo usa os CSVs processados em `RoadFixerAPI/data/accidents/processed`. Para cada km e mês, ele prevê a **taxa de severidade ponderada por milhão de veículos-km**, usando histórico de acidentes e exposição observada. O fluxo mensal é agregado nos dois sentidos em células de 1 km porque os dados atuais não permitem separar os sentidos de forma consistente. A busca escolhe os parâmetros pela média mensal da taxa observada capturada no topo de 10% dos km. O relatório compara o ExtraTrees com duas referências: taxa dos últimos 365 dias e taxa média histórica. O último ano completo fica separado como teste final; um ano corrente parcial entra apenas no ajuste final para prever o próximo mês.
 
 A grade foi mantida compacta para poder rodar no fluxo do projeto. Para uma pesquisa offline, amplie `param_grid` em `grid_search.py`; não misture esse teste com o conjunto do último ano.
 
 ## Integração dos fatores de risco
 
-O diretório [`data_tau/external`](data_tau/external/README.md) contém o contrato dos CSVs que o modelo recebe. Por padrão ele é carregado automaticamente. O GridSearch adiciona fluxo, percentual de pesados, atributos de infraestrutura e calendário. Medições de tráfego, clima e velocidade são deslocadas para o mês seguinte, para que a previsão não veja dados que ainda não existiriam na data de emissão.
+O diretório [`data_tau/external`](data_tau/external/README.md) contém o contrato dos CSVs que o modelo recebe. Por padrão ele é carregado automaticamente. O GridSearch adiciona fluxo defasado, percentual de pesados, exposição do mês observado, atributos de infraestrutura e calendário. A exposição contemporânea só constrói o rótulo da taxa; as variáveis de fluxo usadas como preditoras vêm do mês anterior.
 
 Os arquivos gerados são:
 
@@ -21,6 +21,8 @@ Os arquivos gerados são:
 - `RoadFixerAPI/ModeloEstatistico/data_tau/ranking_km_previsto.csv`: resultado do teste histórico.
 - `RoadFixerAPI/ModeloEstatistico/data_tau/ranking_km_proximo_mes.csv`: ranking operacional do próximo mês.
 - `RoadFixerAPI/API/content/accident-history/risk/savedData.json`: índice de priorização consumido por `/riskData`.
+
+O JSON da API também inclui faixa de referência para a previsão, atualidade da contagem de tráfego, histórico de acidentes e evidências observadas por trecho. As evidências descrevem dados associados à prioridade e não identificam causas. A faixa usa erros do ano de teste e não é um intervalo de confiança garantido.
 
 ## Dados que fazem diferença
 

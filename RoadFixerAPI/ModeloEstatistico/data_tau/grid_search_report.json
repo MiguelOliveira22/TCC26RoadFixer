@@ -1,17 +1,26 @@
 {
   "modelo": "ExtraTreesRegressor",
-  "metrica_de_escolha": "média mensal da severidade real capturada no top 10% de km priorizados",
+  "metrica_de_escolha": "média mensal da taxa de severidade por veículo-km capturada no top 10% de km",
   "melhores_parametros": {
     "max_depth": 8,
     "max_features": 0.7,
-    "min_samples_leaf": 3,
+    "min_samples_leaf": 8,
     "n_estimators": 100
   },
-  "validacao_temporal": 0.3888,
+  "validacao_temporal": 0.2711,
+  "baselines": {
+    "taxa_historica_365d": {
+      "validacao_temporal": 0.2266,
+      "teste_ano_final": 0.197
+    },
+    "taxa_media_historica": {
+      "validacao_temporal": 0.2436,
+      "teste_ano_final": 0.211
+    }
+  },
   "teste_ano_final": 2025,
-  "captura_mensal_no_teste": 0.3646,
-  "captura_global_no_teste": 0.3587,
-  "mae_no_teste": 1.2639,
+  "captura_mensal_no_teste": 0.2181,
+  "mae_taxa_por_milhao_vkm": 2.9668,
   "variaveis": [
     "KM",
     "acidentes_30d",
@@ -27,6 +36,7 @@
     "fluxo_total",
     "fluxo_pesados",
     "percentual_pesados",
+    "fluxo_disponivel",
     "pista_dupla",
     "trecho_planejado",
     "administracao_artesp",
@@ -34,32 +44,59 @@
     "acessos_nao_autorizados",
     "acessos_nao_conformes",
     "acessos_conservacao_ruim",
-    "acessos_comerciais"
+    "acessos_comerciais",
+    "taxa_historica_365d",
+    "taxa_media_historica",
+    "meses_com_exposicao_365d",
+    "meses_com_acidente_365d",
+    "meses_desde_fluxo"
   ],
   "periodo_previsto": "2026-09",
-  "importancia_das_variaveis": {
-    "acidentes_365d": 0.24267946647159977,
-    "severidade_365d": 0.18761739656611554,
-    "acidentes_90d": 0.14078463334830485,
-    "KM": 0.10996577390301322,
-    "acidentes_30d": 0.06975288789459662,
-    "severidade_90d": 0.04568109546759032,
-    "percentual_pesados": 0.04157451093141057,
-    "fluxo_total": 0.02571786367917,
-    "severidade_30d": 0.018771646827517453,
-    "acessos_nao_conformes": 0.01669547547120859,
-    "fluxo_pesados": 0.015355895422888656,
-    "acessos_por_km": 0.013139309936059707,
-    "mes_cosseno": 0.011446059652931924,
-    "acessos_comerciais": 0.01133409255423653,
-    "fim_de_semana": 0.011161386784671054,
-    "mes_seno": 0.010899112430467208,
-    "acessos_nao_autorizados": 0.008826185871153344,
-    "feriado": 0.008767824506112874,
-    "acessos_conservacao_ruim": 0.006427346385983766,
-    "pista_dupla": 0.001954672169914885,
-    "administracao_artesp": 0.001447363725053207,
-    "trecho_planejado": 0.0
+  "unidade_alvo": "severidade ponderada por milhão de veículos-km",
+  "faixa_previsao": {
+    "metodo": "previsão ± percentil 90 dos erros absolutos no último ano de teste",
+    "calibracao_ano": 2025,
+    "quantil_erro_absoluto": 4.1684,
+    "aviso": "Faixa de referência temporal; não é intervalo de confiança calibrado para mudança de distribuição."
   },
-  "alerta": "Índice de priorização para triagem humana; não é probabilidade de acidente nem substitui auditoria de segurança viária."
+  "qualidade_dados": {
+    "trechos_previstos": 451,
+    "trechos_com_fluxo_de_ate_2_meses": 0,
+    "cobertura_fluxo_recente": 0.0,
+    "cobertura_exposicao_no_teste": 1.0,
+    "anos_teste": 2025,
+    "sentidos_agregados": true,
+    "extensao_celula_km": 1
+  },
+  "importancia_das_variaveis": {
+    "acidentes_365d": 0.15262469669086762,
+    "meses_com_acidente_365d": 0.14820911411612006,
+    "acidentes_90d": 0.0980986784221552,
+    "fluxo_pesados": 0.08462528531163835,
+    "taxa_media_historica": 0.06396191491260747,
+    "severidade_365d": 0.06216178823296884,
+    "taxa_historica_365d": 0.05241672352355299,
+    "fluxo_total": 0.04238270325238108,
+    "KM": 0.04096016361061967,
+    "acidentes_30d": 0.031252026730728216,
+    "mes_seno": 0.029826508426537286,
+    "fim_de_semana": 0.02907035026344415,
+    "percentual_pesados": 0.027581122099018498,
+    "mes_cosseno": 0.024041461599816592,
+    "severidade_90d": 0.023388922148219256,
+    "meses_com_exposicao_365d": 0.02067156427864009,
+    "severidade_30d": 0.013940487238957435,
+    "feriado": 0.012904933355646473,
+    "acessos_nao_autorizados": 0.010131320764633031,
+    "acessos_por_km": 0.008860683992124797,
+    "acessos_nao_conformes": 0.007588832437398162,
+    "acessos_comerciais": 0.006095637482457389,
+    "acessos_conservacao_ruim": 0.005563091182967053,
+    "administracao_artesp": 0.0018933658268836873,
+    "pista_dupla": 0.0017486240996165085,
+    "fluxo_disponivel": 0.0,
+    "trecho_planejado": 0.0,
+    "meses_desde_fluxo": 0.0
+  },
+  "alerta": "Índice de priorização para triagem humana; não é probabilidade nem prova causal. Exposição soma os dois sentidos em células de 1 km."
 }
