@@ -104,7 +104,7 @@ export default function EstatisticasPage() {
 
         <div className={styles.dataGrid}>
           <div className={styles.mapCard}>
-            <Map marks={marks} center={defaultCenter} zoom={10} />
+            <Map risk={riskData} marks={marks} center={defaultCenter} zoom={10} />
           </div>
           <div className={styles.graphCard}>
             <Graph data={riskData} />

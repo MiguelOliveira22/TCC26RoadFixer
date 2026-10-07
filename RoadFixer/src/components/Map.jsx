@@ -1,5 +1,6 @@
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { CircleMarker, MapContainer, Popup, TileLayer, GeoJSON, useMap } from 'react-leaflet';
+import { buildRiskSegments, riskColor } from '../utils/buildRiskSegments';
 import anhangueraData from "../anhanguera.json";
 import styles from "./Map.module.css";
 
@@ -33,7 +34,18 @@ function MapFixer({ center }) {
     return null;
 }
 
-export default function Map({ marks = [], center = ANHANGUERA_POSITION, zoom = 11 }) {
+export default function Map({ risk = [], marks = [], center = ANHANGUERA_POSITION, zoom = 11 }) {
+    const riskValues = useMemo(
+        () => risk.map((r) => (typeof r === "number" ? r : r.risco)),
+        [risk]
+    );
+
+    const segments = useMemo(
+        () => buildRiskSegments(anhangueraData, riskValues),
+        [riskValues]
+    );
+
+    const geoKey = useMemo(() => riskValues.join(","), [riskValues]);
     return (
         <div className={styles.grafico}>
             <div className={styles.mapWrapper}>
@@ -51,15 +63,23 @@ export default function Map({ marks = [], center = ANHANGUERA_POSITION, zoom = 1
                     <TileLayer
                         noWrap
                         bounds={SAO_PAULO_BOUNDS}
-                        url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-                        attribution='&copy; OpenStreetMap contributors'
+                        url="https://basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png?key=cb1_4cxu_1_bcf48748192f648ed948b64a" // Alterar depois para um proxy
+                        attribution="&copy; CARTO"
                     />
 
                     {anhangueraData && (
-                        <GeoJSON 
-                            data={anhangueraData} 
-                            style={ANHANGUERA_STYLE} 
-                        />
+                            <GeoJSON
+                                key={geoKey}
+                                data={segments}
+                                style={(feature) => ({
+                                    color: riskColor(feature.properties.risco),
+                                    weight: 5,
+                                    opacity: 0.95,
+                                })}
+                                onEachFeature={(feature, layer) => {
+                                    layer.bindTooltip(`km ${feature.properties.km} · risco ${feature.properties.risco}`);
+                                }}
+                            />
                     )}
 
                     {Array.isArray(marks) && marks.map((mark, index) => {
