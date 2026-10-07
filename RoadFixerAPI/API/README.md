@@ -3,19 +3,9 @@
 ## Instalação
 
 Este documento descreve a API inicial para gerenciamento da interface do RoadFixer.
-De forma geral, consideramos alguns módulos no desenvolvimento da API, sendo eles:
+De forma geral, consideramos alguns módulos no desenvolvimento da API, os quais estão referenciados no ```requirements.txt``` da base da pasta ```RoadFixerAPI```.
 
-```text
-fastapi[standard]
-osmnx
-folium
-pandas
-torch
-matplotlib
-seaborn
-```
-
-Todos eles podem ser instalados usando o comando ```pip install <módulo>```.
+Todos eles podem ser instalados usando ```pip install -r requirements.txt```.
 
 ## Uso
 
@@ -23,7 +13,7 @@ Para usar a API, devemos usar o comando ```uvicorn API.main:server --reload --ho
 
 Isso configura a API para auto-recarregar toda vez que fizermos uma alteração, ir para o primeiro IP possível de host e usar a porta 8000.
 
-Podemos acessar os dados a partir do:
+Podemos acessar os dados a partir do GET abaixo.
 
 ```http
 GET http://<seu-ip>/<rota>
