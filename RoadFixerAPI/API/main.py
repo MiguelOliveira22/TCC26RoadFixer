@@ -1,13 +1,10 @@
-import sys
-from pathlib import Path
-
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 import asyncio
 from fastapi.middleware.cors import CORSMiddleware
 
-from RoadFixerAPI.API.mapping.routes import assignRoutes
-from RoadFixerAPI.API.update.updateData import iniciarAtualizacao
+from API.mapping.routes import assignRoutes
+from API.update.updateData import iniciarAtualizacao
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):

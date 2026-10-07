@@ -7,8 +7,8 @@ import asyncio
 import re
 import json
 
-from RoadFixerAPI.ModeloEstatistico.core import riskCalculations as fallback_risk
-from RoadFixerAPI.ModeloEstatistico.grid_search import run as run_risk_model
+from ModeloEstatistico.core import riskCalculations as fallback_risk
+from ModeloEstatistico.grid_search import run as run_risk_model
 
 BASE_DIR = Path(__file__, "..", "..")
 

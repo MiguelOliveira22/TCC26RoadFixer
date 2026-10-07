@@ -9,7 +9,7 @@ from xhtml2pdf import pisa
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import StreamingResponse, JSONResponse
 
-from RoadFixerAPI.API.model.datasetRequest import DatasetRequest
+from API.model.datasetRequest import DatasetRequest
 
 BASE_DIR_CONTENT = Path(__file__, "..", "content")
 BASE_DIR_DATASETS = Path(__file__, "..", "..", "data")
