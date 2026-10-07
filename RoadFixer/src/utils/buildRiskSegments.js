@@ -169,36 +169,35 @@ export function buildRiskSegments(geojson, risk, { kmOffset = 0, snapMeters = 15
         }
     }
 
-    const sobrando = dist.filter((d) => !isFinite(d)).length;
-    console.log("nós:", coords.length, "| sem km:", sobrando, "| km máx:", Math.max(...dist.filter(isFinite)) / 1000);
+    // 4) um segmento por par de pontos, com risco interpolado entre os km vizinhos
+    const riskAt = (kmFloat) => {
+        // trata o risco de cada km como valor no CENTRO do km (km + 0.5)
+        const x = kmFloat - 0.5;
+        const i0 = Math.floor(x);
+        const i1 = i0 + 1;
+        const r0 = risk[Math.max(0, Math.min(risk.length - 1, i0))];
+        const r1 = risk[Math.max(0, Math.min(risk.length - 1, i1))];
+        if (r0 == null || r1 == null) return r0 ?? r1 ?? null;
+        const t = x - i0;
+        return r0 + (r1 - r0) * t;
+    };
 
-    // 4) quebra em pedaços de 1 km com o risco de cada um
     const features = [];
     lineIds.forEach((ids) => {
-        let run = null;
-        const flush = () => {
-            if (run && run.coords.length > 1) {
-                features.push({
-                    type: "Feature",
-                    properties: { km: run.km, risco: risk[run.km] ?? null },
-                    geometry: { type: "LineString", coordinates: run.coords },
-                });
-            }
-            run = null;
-        };
-
         for (let i = 0; i < ids.length - 1; i++) {
             const a = ids[i], b = ids[i + 1];
-            if (!isFinite(dist[a]) || !isFinite(dist[b])) { flush(); continue; }
+            if (!isFinite(dist[a]) || !isFinite(dist[b])) continue;
 
-            const km = Math.floor((dist[a] + dist[b]) / 2 / 1000 + kmOffset);
-            if (!run || run.km !== km) {
-                flush();
-                run = { km, coords: [coords[a]] };
-            }
-            run.coords.push(coords[b]);
+            const kmFloat = (dist[a] + dist[b]) / 2 / 1000 + kmOffset;
+            features.push({
+                type: "Feature",
+                properties: {
+                    km: Math.floor(kmFloat),
+                    risco: riskAt(kmFloat),
+                },
+                geometry: { type: "LineString", coordinates: [coords[a], coords[b]] },
+            });
         }
-        flush();
     });
 
     return { type: "FeatureCollection", features };

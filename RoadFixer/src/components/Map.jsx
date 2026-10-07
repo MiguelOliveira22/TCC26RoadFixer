@@ -75,9 +75,10 @@ export default function Map({ risk = [], marks = [], center = ANHANGUERA_POSITIO
                                     color: riskColor(feature.properties.risco),
                                     weight: 5,
                                     opacity: 0.95,
+                                    lineCap: "round",
                                 })}
                                 onEachFeature={(feature, layer) => {
-                                    layer.bindTooltip(`km ${feature.properties.km} · risco ${feature.properties.risco}`);
+                                    layer.bindTooltip(`km ${feature.properties.km} · risco ${Number(feature.properties.risco).toFixed(2)}`);
                                 }}
                             />
                     )}
