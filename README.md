@@ -10,3 +10,4 @@
 - 24143 - Miguel Oliveira de Queiroz
 - 24528 - Henrique Hideki Inoue
 - 24609 - Matheus Franco Siotti Sanches
+- Simone Pierini Facini Rocha
