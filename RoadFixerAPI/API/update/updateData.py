@@ -5,12 +5,12 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 import asyncio
 import re
-import os
 import json
+
 from RoadFixerAPI.ModeloEstatistico.core import riskCalculations as fallback_risk
 from RoadFixerAPI.ModeloEstatistico.grid_search import run as run_risk_model
 
-BASE_DIR = Path(__file__).resolve().parent.parent
+BASE_DIR = Path(__file__, "..", "..")
 
 def prepararPastas():
     pastaData = BASE_DIR / "data/accidents"
@@ -103,6 +103,78 @@ def normalizar_subclasse(s):
 # ========================================================
 # ATUALIZAÇÃO ARTESP E CLIMA
 # ========================================================
+
+def iniciarAtualizacao():
+    return asyncio.create_task(atualizacaoDiaria())
+
+async def atualizacaoDiaria():
+    while True:
+        try:
+            print("[SCHEDULER] Executando atualização...")
+            await asyncio.to_thread(atualizarSistema)
+        except Exception as e:
+            print(f"[SCHEDULER] Erro na atualização: {e}")
+
+        agora = datetime.now()
+        proxima = (agora + timedelta(days=1)).replace(hour=23, minute=50, second=0, microsecond=0)
+        espera = (proxima - datetime.now()).total_seconds()
+
+        print(f"[SCHEDULER] Próxima atualização: {proxima.strftime('%d/%m/%Y %H:%M:%S')}")
+        await asyncio.sleep(espera)
+
+def atualizarSistema():
+    ano = datetime.now().year
+
+    print(f"\n===== ATUALIZAÇÃO DO SISTEMA {ano} =====\n")
+    prepararPastas()
+
+    artesp_ok = atualizarARTESP()
+
+    if artesp_ok:
+        print("\n===== Treinando e publicando previsão de risco =====\n")
+        try:
+            model_dir = BASE_DIR / "ModeloEstatistico"
+            run_risk_model(
+                data_dir=BASE_DIR / "data" / "accidents" / "processed",
+                output=model_dir / "data_tau" / "grid_search_report.json",
+                top_fraction=0.10,
+                external_dir=model_dir / "data_tau" / "external",
+            )
+            print("[UPDATE] Dados e previsão atualizados com sucesso.")
+        except Exception as error:
+            # A API continua disponível, mas a resposta deixa explícito que o
+            # índice não foi produzido pelo modelo de exposição ajustada.
+            print(f"[UPDATE] Falha no modelo temporal: {error}. Gerando fallback histórico.")
+            fallback_risk.calcAccidents()
+            risk_path = BASE_DIR / "API" / "content" / "accident-history" / "risk" / "savedData.json"
+            if risk_path.exists():
+                payload = json.loads(risk_path.read_text(encoding="utf-8"))
+                now = datetime.now(timezone.utc)
+                next_month = (now.replace(day=1) + timedelta(days=32)).replace(day=1)
+                payload.update({
+                    "last_update": now.strftime("%Y-%m-%dT%H:%M:%SZ"),
+                    "periodo_previsto": next_month.strftime("%Y-%m"),
+                    "metodo": "Fallback heurístico histórico - não ajustado por veículos-km",
+                    "estado_modelo": "fallback",
+                    "aviso": f"O modelo principal falhou ({type(error).__name__}); este índice usa a regra histórica.",
+                    "trechos": [],
+                    "faixa_previsao": {
+                        "aviso": "O fallback não gera faixa de previsão calibrada."
+                    },
+                    "metricas": {},
+                    "qualidade_dados": {
+                        "exposicao_veiculo_km": "não aplicada no fallback",
+                        "validacao_operacional": "necessária",
+                    },
+                })
+                temporary_path = risk_path.with_suffix(".json.tmp")
+                temporary_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
+                temporary_path.replace(risk_path)
+        return True
+
+    print("[UPDATE] Houve erro na atualização.")
+    return False
+
 def atualizarARTESP():
     ano = datetime.now().year
     pastaData, _ = prepararPastas()
@@ -158,75 +230,3 @@ def atualizarARTESP():
     except Exception as e:
         print(f"[ARTESP] Erro: {e}")
         return False
-
-
-def atualizarSistema():
-    ano = datetime.now().year
-
-    print(f"\n===== ATUALIZAÇÃO DO SISTEMA {ano} =====\n")
-    prepararPastas()
-
-    artesp_ok = atualizarARTESP()
-
-    if artesp_ok:
-        print("\n===== Treinando e publicando previsão de risco =====\n")
-        try:
-            model_dir = BASE_DIR / "ModeloEstatistico"
-            run_risk_model(
-                data_dir=BASE_DIR / "data" / "accidents" / "processed",
-                output=model_dir / "data_tau" / "grid_search_report.json",
-                top_fraction=0.10,
-                external_dir=model_dir / "data_tau" / "external",
-            )
-            print("[UPDATE] Dados e previsão atualizados com sucesso.")
-        except Exception as error:
-            # A API continua disponível, mas a resposta deixa explícito que o
-            # índice não foi produzido pelo modelo de exposição ajustada.
-            print(f"[UPDATE] Falha no modelo temporal: {error}. Gerando fallback histórico.")
-            fallback_risk.calcAccidents()
-            risk_path = BASE_DIR / "API" / "content" / "accident-history" / "risk" / "savedData.json"
-            if risk_path.exists():
-                payload = json.loads(risk_path.read_text(encoding="utf-8"))
-                now = datetime.now(timezone.utc)
-                next_month = (now.replace(day=1) + timedelta(days=32)).replace(day=1)
-                payload.update({
-                    "last_update": now.strftime("%Y-%m-%dT%H:%M:%SZ"),
-                    "periodo_previsto": next_month.strftime("%Y-%m"),
-                    "metodo": "Fallback heurístico histórico - não ajustado por veículos-km",
-                    "estado_modelo": "fallback",
-                    "aviso": f"O modelo principal falhou ({type(error).__name__}); este índice usa a regra histórica.",
-                    "trechos": [],
-                    "faixa_previsao": {
-                        "aviso": "O fallback não gera faixa de previsão calibrada."
-                    },
-                    "metricas": {},
-                    "qualidade_dados": {
-                        "exposicao_veiculo_km": "não aplicada no fallback",
-                        "validacao_operacional": "necessária",
-                    },
-                })
-                temporary_path = risk_path.with_suffix(".json.tmp")
-                temporary_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
-                temporary_path.replace(risk_path)
-        return True
-
-    print("[UPDATE] Houve erro na atualização.")
-    return False
-
-async def atualizacaoDiaria():
-    while True:
-        try:
-            print("[SCHEDULER] Executando atualização...")
-            await asyncio.to_thread(atualizarSistema)
-        except Exception as e:
-            print(f"[SCHEDULER] Erro na atualização: {e}")
-
-        agora = datetime.now()
-        proxima = (agora + timedelta(days=1)).replace(hour=23, minute=50, second=0, microsecond=0)
-        espera = (proxima - datetime.now()).total_seconds()
-
-        print(f"[SCHEDULER] Próxima atualização: {proxima.strftime('%d/%m/%Y %H:%M:%S')}")
-        await asyncio.sleep(espera)
-
-def iniciarAtualizacao():
-    return asyncio.create_task(atualizacaoDiaria())
