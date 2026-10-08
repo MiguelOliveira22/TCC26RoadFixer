@@ -238,7 +238,7 @@ def atualizarARTESP():
 
 def atualizarSAT():
     ano = datetime.now().year
-    pastaData, _, _ = prepararPastas()
+    _, _, pastaSAT = prepararPastas()
 
     URL = (
         f"https://dadosabertos.artesp.sp.gov.br/dataset/"
@@ -247,8 +247,8 @@ def atualizarSAT():
         f"contagem_sat_dia_{ano}.csv"  
     )
 
-    arquivoCompleto = pastaData / "non_Processed" / f"{ano}.csv"
-    arquivoSat = pastaData / "processed" / f"p{ano}.csv"
+    arquivoCompleto = pastaSAT / "non_Processed" / f"{ano}.csv"
+    arquivoSat = pastaSAT / "processed" / f"p{ano}.csv"
 
     try:
         print(f"[SAT] Baixando dados de {ano}...")
@@ -256,6 +256,19 @@ def atualizarSAT():
         response.raise_for_status()
 
         data = pd.read_csv(StringIO(response.content.decode("utf-8")))
+        data.to_csv(arquivoCompleto, index=False, encoding="utf-8")
+
+        data["VOLUME_TRAFEGO"] = data.loc[:, 'QTD_MOTO' : "QTD_COMERCIAL"].sum(axis=1)
+
+        anhanguera = data[data["RODOVIA"].str.contains("330", na=False)].copy()
+        anhanguera = anhanguera.sort_values(by=[anhanguera.DATA.name], ascending=True)
+
+        colunas_remover = ["CONCESSIONARIA", "RA", "COMPLEMENTO", "QTD_MOTO", "QTD_PASSEIO", "QTD_COMERCIAL"]
+        anhanguera = anhanguera.drop(columns=[col for col in colunas_remover if col in anhanguera.columns])
+
+        anhanguera.to_csv(arquivoSat, index=False, encoding="utf-8")
+        print(f"[SAT] {len(anhanguera)} dados da Anhanguera processados e salvos.")
+        return True
     except Exception as e:
         print(f"[SAT] Erro: {e}")
         return False
