@@ -7,23 +7,41 @@ import { useEffect, useState } from "react";
 import { apiPath } from "../Constants";
 
 async function getReports() {
-  const res = await fetch(apiPath + "accidentHistory/");
+  const res = await fetch(apiPath + "accidentHistory");
   const data = await res.json();
   const formatted = data.content.map((valor) => ({ id: valor.id, data: valor.data }));
   return formatted;
 }
 
 async function getRiskData() {
-  const res = await fetch(apiPath + "riskData/");
+  const res = await fetch(apiPath + "riskData");
   if (!res.ok) throw new Error(`Falha ao carregar risco: HTTP ${res.status}`);
   const data = await res.json();
   const formatted = (Array.isArray(data.risk) ? data.risk : []).map((valor, index) => ({ KM: String(index), risco: valor }));
   return { formatted, metadata: data, details: Array.isArray(data.trechos) ? data.trechos : [] };
 }
 
+const TIPOS_DADO = [
+  { label: "Risco", rota: apiPath + "riskData", escalaFixa: true }, // vem de /riskData, já em 0–10
+  { label: "Volume de tráfego", rota: null, extrair: (d) => d.valores },
+  { label: "Numero de mortes", rota: null, extrair: (d) => d.valores },
+  { label: "Números de acidentados agregados", rota: null, extrair: (d) => d.valores },
+  { label: "Volume médio de acidentes agregados", rota: null, extrair: (d) => d.valores },
+];
+const TIPO_PADRAO = "Risco";
+
+async function getSerie(tipo) {
+  const res = await fetch(apiPath + tipo.rota);
+  if (!res.ok) throw new Error(`Falha ao carregar ${tipo.label}: HTTP ${res.status}`);
+  const data = await res.json();
+  return (tipo.extrair(data) || []).map((v) => Number(v) || 0);
+}
+
 export default function EstatisticasPage() {
   const [reports, setReports] = useState(null);
-  const [riskData, setRiskData] = useState([]);
+  const [series, setSeries] = useState({});            // { "Risco": [..], "Volume de tráfego": [..] }
+  const [tipoDado, setTipoDado] = useState(TIPO_PADRAO);
+  const [inputValue, setInputValue] = useState(TIPO_PADRAO);
   const [riskMetadata, setRiskMetadata] = useState(null);
   const [riskDetails, setRiskDetails] = useState([]);
 
@@ -34,27 +52,50 @@ export default function EstatisticasPage() {
   useEffect(() => {
     const loadData = async () => {
       try {
-        const [reportsData, risk] = await Promise.all([getReports(), getRiskData()]);
+        const extras = TIPOS_DADO.filter((t) => t.rota);
+        const [reportsData, risk, resultados] = await Promise.all([
+          getReports(),
+          getRiskData(),
+          Promise.allSettled(extras.map(getSerie)), // uma rota com erro não derruba as outras
+        ]);
+
+        const novas = { Risco: risk.formatted.map((r) => r.risco) };
+        resultados.forEach((r, i) => {
+          if (r.status === "fulfilled") novas[extras[i].label] = r.value;
+          else console.error(r.reason);
+        });
+
         setReports(reportsData);
-        setRiskData(risk.formatted);
+        setSeries(novas);
         setRiskMetadata(risk.metadata);
         setRiskDetails(risk.details);
       } catch (error) {
         console.error("Erro ao carregar dados das estatísticas:", error);
       }
     };
-
     loadData();
   }, []);
 
-  if (reports === null) {
-    return (
-      <div className={styles.loadingContainer}>
-        <div className={styles.spinner}></div>
-        <p className={styles.loadingText}>Carregando estatísticas...</p>
-      </div>
-    );
-  }
+  // Monta { KM, valor, risco } para o tipo atual. "risco" é a versão 0–10 usada nas cores.
+  const dadosAtuais = useMemo(() => {
+    const tipo = TIPOS_DADO.find((t) => t.label === tipoDado);
+    const valores = series[tipoDado] ?? [];
+    const max = tipo?.escalaFixa ? 10 : Math.max(...valores, 0);
+
+    return valores.map((valor, i) => ({
+      KM: String(i),
+      valor,
+      risco: max > 0 ? Math.min((valor / max) * 10, 10) : 0,
+    }));
+  }, [tipoDado, series]);
+
+  const tipoAtual = TIPOS_DADO.find((t) => t.label === tipoDado);
+
+  const handleTipoChange = (e) => {
+    const valor = e.target.value;
+    setInputValue(valor);
+    if (series[valor]) setTipoDado(valor); // só aceita opções com dados carregados
+  };
 
   return (
     <div className={styles.pageWrapper}>
@@ -102,12 +143,33 @@ export default function EstatisticasPage() {
           </p>
         </div>
 
+        <div className={styles.seletorDado}>
+          <label htmlFor="tipoDado">Dado exibido</label>
+          <input
+            id="tipoDado"
+            list="options"
+            value={inputValue}
+            onChange={handleTipoChange}
+            onFocus={() => setInputValue("")}
+            onBlur={() => setInputValue(tipoDado)}
+            placeholder="Selecione o tipo de dado"
+          />
+          <datalist id="options">
+            {TIPOS_DADO.filter((t) => series[t.label]).map((t) => (
+              <option key={t.label} value={t.label} />
+            ))}
+          </datalist>
+          {!tipoAtual?.escalaFixa && (
+            <small>Cores relativas ao maior valor da via para este dado.</small>
+          )}
+        </div>
+
         <div className={styles.dataGrid}>
           <div className={styles.mapCard}>
-            <Map risk={riskData} marks={marks} center={defaultCenter} zoom={10} />
+            <Map risk={dadosAtuais} label={tipoDado} marks={marks} center={defaultCenter} zoom={10} />
           </div>
           <div className={styles.graphCard}>
-            <Graph data={riskData} />
+            <Graph data={dadosAtuais} label={tipoDado} escalaFixa={!!tipoAtual?.escalaFixa} />
           </div>
         </div>
       </section>

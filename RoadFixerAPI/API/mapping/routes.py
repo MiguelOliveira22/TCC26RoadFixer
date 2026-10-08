@@ -11,8 +11,8 @@ from fastapi.responses import StreamingResponse, JSONResponse
 
 from API.model.datasetRequest import DatasetRequest
 
-BASE_DIR_CONTENT = Path(Path(__file__).parent, "content")
-BASE_DIR_DATASETS = Path(Path(__file__).parent.parent, "data")
+BASE_DIR_CONTENT = Path(Path(__file__).parent.parent, "content")
+BASE_DIR_DATASETS = Path(Path(__file__).parent.parent.parent, "data")
 
 def assignRoutes(api: FastAPI):
     @api.post("/getDataset")
@@ -77,6 +77,14 @@ def assignRoutes(api: FastAPI):
 
     @api.get("/riskData")
     async def getRiskData() -> JSONResponse:
+        try:
+            with open(Path(BASE_DIR_CONTENT, "accident-history", "risk", "savedData.json"), encoding="utf-8") as file:
+                return JSONResponse(json.load(file))
+        except OSError:
+            raise HTTPException(status_code=503, detail=f"O arquivo não foi encontrado.")
+
+    @api.get("/trafficVolume")
+    async def getTrafficVolume() -> JSONResponse:
         try:
             with open(Path(BASE_DIR_CONTENT, "accident-history", "risk", "savedData.json"), encoding="utf-8") as file:
                 return JSONResponse(json.load(file))

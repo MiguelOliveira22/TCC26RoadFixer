@@ -10,16 +10,20 @@ import json
 from ModeloEstatistico.core import riskCalculations as fallback_risk
 from ModeloEstatistico.grid_search import run as run_risk_model
 
-BASE_DIR = Path(__file__).parent.parent
+BASE_DIR = Path(__file__).parent.parent.parent
 
 def prepararPastas():
     pastaData = BASE_DIR / "data/accidents"
     pastaWeather = BASE_DIR / "data/weather-data"
+    pastaSAT = BASE_DIR / "data/SAT"
     (pastaData / "processed").mkdir(parents=True, exist_ok=True)
     (pastaData / "non_Processed").mkdir(parents=True, exist_ok=True)
     pastaWeather.mkdir(parents=True, exist_ok=True)
+    pastaSAT.mkdir(parents=True, exist_ok=True)
+    (pastaSAT / "processed").mkdir(parents=True, exist_ok=True)
+    (pastaSAT / "non_Processed").mkdir(parents=True, exist_ok=True)
 
-    return pastaData, pastaWeather
+    return pastaData, pastaWeather, pastaSAT
 
 # ========================================================
 # FUNÇÕES DE NORMALIZAÇÃO DA ARTESP
@@ -129,6 +133,7 @@ def atualizarSistema():
     prepararPastas()
 
     artesp_ok = atualizarARTESP()
+    sat_ok = atualizarSAT()
 
     if artesp_ok:
         print("\n===== Treinando e publicando previsão de risco =====\n")
@@ -177,7 +182,7 @@ def atualizarSistema():
 
 def atualizarARTESP():
     ano = datetime.now().year
-    pastaData, _ = prepararPastas()
+    pastaData, _, _ = prepararPastas()
 
     URL = (
         f"https://dadosabertos.artesp.sp.gov.br/dataset/"
@@ -229,4 +234,28 @@ def atualizarARTESP():
 
     except Exception as e:
         print(f"[ARTESP] Erro: {e}")
+        return False
+
+def atualizarSAT():
+    ano = datetime.now().year
+    pastaData, _, _ = prepararPastas()
+
+    URL = (
+        f"https://dadosabertos.artesp.sp.gov.br/dataset/"
+        f"63017848-7c66-4a35-9c9a-ad4ef855b9c2/resource/"
+        f"6c7b98fb-822d-45d1-b230-2b9791bab265/download/"
+        f"contagem_sat_dia_{ano}.csv"  
+    )
+
+    arquivoCompleto = pastaData / "non_Processed" / f"{ano}.csv"
+    arquivoSat = pastaData / "processed" / f"p{ano}.csv"
+
+    try:
+        print(f"[SAT] Baixando dados de {ano}...")
+        response = requests.get(URL, timeout=60)
+        response.raise_for_status()
+
+        data = pd.read_csv(StringIO(response.content.decode("utf-8")))
+    except Exception as e:
+        print(f"[SAT] Erro: {e}")
         return False

@@ -34,18 +34,28 @@ function MapFixer({ center }) {
     return null;
 }
 
-export default function Map({ risk = [], marks = [], center = ANHANGUERA_POSITION, zoom = 11 }) {
+export default function Map({ risk = [], marks = [], center = ANHANGUERA_POSITION, zoom = 11, label = "Risco" }) {
     const riskValues = useMemo(
         () => risk.map((r) => (typeof r === "number" ? r : r.risco)),
         [risk]
     );
+
+    // km -> valor real (para o tooltip mostrar o número verdadeiro, não o normalizado)
+    const valorPorKm = useMemo(() => {
+        const m = {};
+        risk.forEach((r) => {
+            if (typeof r !== "number") m[String(r.KM)] = r.valor ?? r.risco;
+        });
+        return m;
+    }, [risk]);
 
     const segments = useMemo(
         () => buildRiskSegments(anhangueraData, riskValues),
         [riskValues]
     );
 
-    const geoKey = useMemo(() => riskValues.join(","), [riskValues]);
+    // label na key: força o GeoJSON a recriar ao trocar o tipo (ele não atualiza sozinho)
+    const geoKey = useMemo(() => `${label}|${riskValues.join(",")}`, [label, riskValues]);
     return (
         <div className={styles.grafico}>
             <div className={styles.mapWrapper}>
@@ -78,7 +88,11 @@ export default function Map({ risk = [], marks = [], center = ANHANGUERA_POSITIO
                                     lineCap: "round",
                                 })}
                                 onEachFeature={(feature, layer) => {
-                                    layer.bindTooltip(`km ${feature.properties.km} · risco ${Number(feature.properties.risco).toFixed(2)}`);
+                                    const km = feature.properties.km;
+                                    const valor = valorPorKm[String(km)] ?? feature.properties.risco;
+                                    layer.bindTooltip(
+                                        `km ${km} · ${label.toLowerCase()} ${Number(valor).toLocaleString("pt-BR", { maximumFractionDigits: 2 })}`
+                                    );
                                 }}
                             />
                     )}

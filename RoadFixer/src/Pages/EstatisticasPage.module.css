@@ -188,3 +188,12 @@
 .evidenceTable tbody tr:last-child td {
   border-bottom: 0;
 }
+
+.seletorDado { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
+
+.seletorDado input {
+  background: rgba(255,255,255,0.05); color: #fff;
+  border: 1px solid rgba(255,255,255,0.15); border-radius: 8px;
+  padding: 10px 14px; min-width: 280px;
+}
+.seletorDado small { color: #888; }
