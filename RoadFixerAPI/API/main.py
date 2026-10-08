@@ -11,7 +11,7 @@ async def lifespan(app: FastAPI):
     tarefa = iniciarAtualizacao()
     yield
     tarefa.cancel()
-    
+
     try:
         await tarefa
     except asyncio.CancelledError:

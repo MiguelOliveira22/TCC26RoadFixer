@@ -11,8 +11,8 @@ from fastapi.responses import StreamingResponse, JSONResponse
 
 from API.model.datasetRequest import DatasetRequest
 
-BASE_DIR_CONTENT = Path(__file__, "..", "content")
-BASE_DIR_DATASETS = Path(__file__, "..", "..", "data")
+BASE_DIR_CONTENT = Path(Path(__file__).parent, "content")
+BASE_DIR_DATASETS = Path(Path(__file__).parent.parent, "data")
 
 def assignRoutes(api: FastAPI):
     @api.post("/getDataset")
