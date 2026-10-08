@@ -10,7 +10,7 @@ import json
 from ModeloEstatistico.core import riskCalculations as fallback_risk
 from ModeloEstatistico.grid_search import run as run_risk_model
 
-BASE_DIR = Path(__file__, "..", "..")
+BASE_DIR = Path(__file__).parent.parent
 
 def prepararPastas():
     pastaData = BASE_DIR / "data/accidents"
