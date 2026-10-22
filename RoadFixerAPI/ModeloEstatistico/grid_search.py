@@ -18,8 +18,12 @@ from sklearn.model_selection import GridSearchCV
 
 try:
     from .context_features import enrich
+    from ..database import get_database
 except ImportError:  # Mantém compatibilidade com a execução direta do arquivo.
     from context_features import enrich
+    import sys
+    sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+    from RoadFixerAPI.database import get_database
 
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -41,19 +45,27 @@ def severity(row: pd.Series) -> float:
 
 
 def load_accidents(data_dir: Path) -> pd.DataFrame:
-    frames = []
-    for path in sorted(data_dir.glob("p*.csv")):
-        data = pd.read_csv(path, encoding="utf-8")
-        required = {"DATA", "KM", "VITIMA_LEVE", "VITIMA_MODERADA", "VITIMA_GRAVE", "VITIMA_FATAL"}
-        missing = required.difference(data.columns)
-        if missing:
-            raise ValueError(f"{path.name} não possui as colunas: {', '.join(sorted(missing))}")
-        frames.append(data)
-    if not frames:
-        raise FileNotFoundError(f"Nenhum arquivo p*.csv encontrado em {data_dir}")
+    required = {"DATA", "KM", "VITIMA_LEVE", "VITIMA_MODERADA", "VITIMA_GRAVE", "VITIMA_FATAL"}
+    if Path(data_dir).resolve() == DEFAULT_DATA_DIR.resolve():
+        data = get_database().load_accidents()
+        if data.empty:
+            raise ValueError("Nenhum acidente disponível no DuckDB")
+    else:
+        frames = []
+        for path in sorted(data_dir.glob("p*.csv")):
+            frame = pd.read_csv(path, encoding="utf-8")
+            missing = required.difference(frame.columns)
+            if missing:
+                raise ValueError(f"{path.name} não possui as colunas: {', '.join(sorted(missing))}")
+            frames.append(frame)
+        if not frames:
+            raise FileNotFoundError(f"Nenhum arquivo p*.csv encontrado em {data_dir}")
+        data = pd.concat(frames, ignore_index=True)
+    missing = required.difference(data.columns)
+    if missing:
+        raise ValueError(f"Dados de acidentes não possuem as colunas: {', '.join(sorted(missing))}")
 
-    data = pd.concat(frames, ignore_index=True)
-    data["DATA"] = pd.to_datetime(data["DATA"], errors="coerce")
+    data["DATA"] = pd.to_datetime(data["DATA"], format="mixed", errors="coerce")
     data["KM"] = pd.to_numeric(data["KM"].astype(str).str.replace(",", ".", regex=False), errors="coerce")
     victim_columns = ["VITIMA_LEVE", "VITIMA_MODERADA", "VITIMA_GRAVE", "VITIMA_FATAL"]
     data[victim_columns] = data[victim_columns].apply(pd.to_numeric, errors="coerce").fillna(0)
@@ -208,6 +220,8 @@ def run(
     output.write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
     ranked.to_csv(output.with_name("ranking_km_previsto.csv"), index=False, encoding="utf-8")
     forecast.to_csv(prediction_output, index=False, encoding="utf-8")
+    if Path(output).resolve() == DEFAULT_OUTPUT.resolve():
+        get_database().save_predictions(forecast)
     return report
 
 

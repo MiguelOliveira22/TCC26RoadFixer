@@ -6,6 +6,7 @@ from pathlib import Path
 import asyncio
 import re
 
+from ..database import get_database
 from ..ModeloEstatistico.core import riskCalculations as calc
 from ..ModeloEstatistico.grid_search import run as run_prediction
 
@@ -115,7 +116,6 @@ def atualizarARTESP():
     )
 
     arquivoCompleto = pastaData / "non_Processed" / f"{ano}.csv"
-    arquivoAnhanguera = pastaData / "processed" / f"p{ano}.csv"
 
     try:
         print(f"[ARTESP] Baixando dados de {ano}...")
@@ -157,7 +157,7 @@ def atualizarARTESP():
         colunas_remover = ["_id", "VITIMAS_SEM_INFO", "VITIMA_ILESA", "VISIBILIDADE", "CONDICAO_METERIOLOGICA"]
         anhanguera = anhanguera.drop(columns=[col for col in colunas_remover if col in anhanguera.columns])
 
-        anhanguera.to_csv(arquivoAnhanguera, index=False, encoding="utf-8")
+        get_database().save_accidents(f"p{ano}.csv", anhanguera)
 
         print(f"[ARTESP] {len(anhanguera)} acidentes da Anhanguera processados e salvos.")
         return True

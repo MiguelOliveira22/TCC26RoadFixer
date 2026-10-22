@@ -372,3 +372,6 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+# Banco local DuckDB
+*.duckdb
+*.duckdb.wal

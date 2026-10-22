@@ -13,12 +13,12 @@ dois mecanismos de análise distintos:
 
 > O escopo deliberado do projeto inclui os acidentes da via principal, das
 > marginais e dos acessos cujo identificador contém `330`. Portanto, os
-> 31.130 registros processados não devem ser reduzidos a apenas `RODOVIA ==
+> registros históricos processados não devem ser reduzidos a apenas `RODOVIA ==
 > "SP330"`.
 
 ## Requisitos
 
-- Python 3.11 ou superior.
+- Python 3.11 ou superior (DuckDB 2.0).
 - Node.js 20 ou superior, apenas para executar a interface React.
 - Conexão com a internet para a atualização da ARTESP e a consulta do clima
   histórico no Open-Meteo.
@@ -63,6 +63,48 @@ diariamente às 23h50. A primeira execução pode demorar, pois consulta dados
 externos e processa todos os arquivos históricos. Os logs aparecem no terminal
 do Uvicorn.
 
+### Armazenamento DuckDB
+
+Na primeira inicialização, a API cria `RoadFixerAPI/data/roadfixer.duckdb`
+e importa os JSONs de conteúdo, o índice de risco, a previsão existente,
+os acidentes processados, o cache meteorológico e os pesos TAU. A importação
+é transacional e acontece uma única vez por banco. Reiniciar a API preserva
+os dados e não reaplica os arquivos antigos sobre as atualizações do banco.
+
+Para preparar o banco sem iniciar o servidor:
+
+```bash
+python -m RoadFixerAPI.database
+```
+
+Todas as rotas consultam DuckDB. A atualização da ARTESP substitui somente
+os acidentes do ano atualizado, o cálculo heurístico grava o clima e o risco
+no banco, e o Extra Trees publica a previsão no banco. Os formatos HTTP
+continuam compatíveis com o frontend.
+
+Os CSVs e JSONs versionados servem para a importação inicial. Os downloads
+brutos da ARTESP, os arquivos contextuais externos e as exportações do modelo
+continuam sendo arquivos de entrada ou de análise. Editar um arquivo legado
+depois da migração não altera o banco. Faça backup do `.duckdb` com a API
+parada; o arquivo local e seu WAL são ignorados pelo Git.
+
+Configurações opcionais por variável de ambiente:
+
+| Variável | Padrão | Uso |
+| --- | --- | --- |
+| `ROADFIXER_DB_PATH` | `RoadFixerAPI/data/roadfixer.duckdb` | Caminho do banco. O padrão independe do diretório do terminal; um caminho personalizado relativo parte do diretório atual. |
+| `ROADFIXER_AUTO_UPDATE` | `1` | Use `0` para servir os dados sem iniciar downloads e treinamento automáticos. |
+
+Execute uma única instância da API, com um worker. As rotas e o agendador
+compartilham o banco no mesmo processo, com conexões protegidas por trava e
+transações. Pare a API antes de executar uma atualização manual que grave no
+mesmo banco. Essa configuração segue o modelo de concorrência do
+[DuckDB](https://duckdb.org/docs/stable/connect/concurrency).
+
+Tabelas principais: `accidents` e `weather` (separadas por `source_file`),
+`tau`, `risk_values`, `predictions` e `documents` (conteúdo JSON e metadados).
+`GET /datasets/` monta o download JSON a partir do banco.
+
 ### 3. Iniciar o frontend opcionalmente
 
 Em outro terminal, ainda na raiz:
@@ -84,12 +126,12 @@ O fluxo executado pela API é:
 ARTESP
   -> data/accidents/non_Processed/<ano>.csv
   -> normalização e recorte do corredor SP-330
-  -> data/accidents/processed/p<ano>.csv
+  -> DuckDB: accidents (ano atualizado)
        -> cálculo de gravidade, tau, chuva e recência
-       -> API/content/accident-history/risk/savedData.json
+       -> DuckDB: weather + risk_values
        -> GET /riskData -> gráfico de índice histórico
        -> Extra Trees temporal
-       -> ModeloEstatistico/data_tau/previsao_proximo_mes.csv
+       -> DuckDB: predictions (com exportação CSV para análise)
        -> GET /predictionData -> gráfico de previsão
 ```
 
@@ -111,7 +153,7 @@ qualidade do clima histórico podem afetar o cálculo.
 
 ## Executar a IA de Extra Trees manualmente
 
-O modelo de aprendizado de máquina recebe o histórico por km e mês. Para cada
+O modelo de aprendizado de máquina recebe o histórico do DuckDB por km e mês. Para cada
 período, as variáveis de acidentes dos últimos 30, 90 e 365 dias são usadas
 para estimar a severidade do mês seguinte. A validação é temporal: anos e
 meses futuros não entram no treinamento dos períodos anteriores.
@@ -135,8 +177,8 @@ O comando gera dois arquivos:
   variáveis usadas;
 - `data_tau/ranking_km_previsto.csv`: ranking de km e risco previsto para a
   avaliação histórica do último ano;
-- `data_tau/previsao_proximo_mes.csv`: ranking sem alvo conhecido, usado pela
-  API como previsão do próximo mês.
+- `data_tau/previsao_proximo_mes.csv`: exportação do ranking sem alvo conhecido para
+  análise. A API consulta a previsão publicada no DuckDB.
 
 O Extra Trees carrega automaticamente as contagens diárias e os arquivos de
 infraestrutura na pasta `data_tau/external/raw`. Arquivos opcionais
@@ -144,9 +186,10 @@ infraestrutura na pasta `data_tau/external/raw`. Arquivos opcionais
 podem acrescentar contexto. O contrato de cada CSV está em
 `data_tau/external/README.md`.
 
-> O comando acima sobrescreve os artefatos de relatório e ranking. Ele não
-> sobrescreve os CSVs brutos nem o `savedData.json` usado pelo índice
-> heurístico.
+> O comando acima sobrescreve os artefatos de relatório e ranking e publica
+> a previsão no DuckDB quando usa o caminho de saída padrão. Com `--output`
+> personalizado, somente os artefatos de análise são gerados. O argumento
+> `--data-dir` permite usar CSVs externos para experimentos.
 
 ## Rotas HTTP
 
@@ -156,8 +199,8 @@ podem acrescentar contexto. O contrato de cada CSV está em
 | GET | `/carddata/` | Cards da página inicial. |
 | GET | `/statsdata/` | Conteúdo estático de estatísticas. |
 | GET | `/accidentHistory` | Registros apresentados como histórico pela interface. |
-| GET | `/riskData` | Índices do arquivo `savedData.json`. Retorna uma estrutura vazia segura se o cálculo ainda não gerou o arquivo. |
-| GET | `/predictionData` | Ranking do próximo mês do Extra Trees, lido de `previsao_proximo_mes.csv`. Retorna uma estrutura vazia segura enquanto o modelo não terminar. |
+| GET | `/riskData` | Índices armazenados no DuckDB. Retorna uma estrutura vazia segura se o índice ainda não foi gerado. |
+| GET | `/predictionData` | Ranking do próximo mês do Extra Trees, lido do DuckDB. Retorna uma estrutura vazia segura enquanto o modelo não terminar. |
 | GET | `/listadatasets/` | Lista de conjuntos apresentados na interface. |
 | GET | `/datasets/` | Download do JSON de conjuntos. |
 
@@ -178,16 +221,17 @@ Cada posição da lista `risk` representa o km cujo número é o próprio índic
 
 | Arquivo | Responsabilidade |
 | --- | --- |
+| `database.py` | Cria o DuckDB, importa os arquivos legados uma vez e centraliza consultas e gravações transacionais. |
 | `API/main.py` | Cria o `FastAPI`, libera CORS para desenvolvimento, registra as rotas e inicia/cancela o agendador no ciclo de vida da aplicação. |
 | `API/README.md` | Documento inicial e resumido da API. Este README central é a referência atual de instalação e execução. |
-| `API/mapping/routes.py` | Define as rotas de saúde, cards, estatísticas, histórico, risco e previsão. `/riskData` lê `savedData.json`; `/predictionData` lê `previsao_proximo_mes.csv`; ambas possuem fallback seguro. |
-| `API/mapping/directory.py` | Define as rotas que listam e disponibilizam o JSON de conjuntos de dados. |
+| `API/mapping/routes.py` | Define as rotas de saúde, cards, estatísticas, histórico, risco e previsão. `/riskData` e `/predictionData` consultam DuckDB; ambas possuem fallback seguro. |
+| `API/mapping/directory.py` | Lista os conjuntos e gera o download JSON a partir do DuckDB. |
 | `API/__init__.py` e `API/mapping/__init__.py` | Marcam os diretórios como pacotes Python. |
-| `API/content/cards/content.json` | Conteúdo dos cards da página inicial. |
-| `API/content/stats/content.json` | Conteúdo estático da seção de estatísticas. |
-| `API/content/conjuntos/content.json` | Lista de conjuntos de dados exibida no frontend. |
-| `API/content/accident-history/content.json` | Histórico demonstrativo consumido pelas páginas. |
-| `API/content/accident-history/risk/savedData.json` | Saída persistida do cálculo heurístico; é a fonte de `/riskData`. |
+| `API/content/cards/content.json` | Conteúdo inicial dos cards, importado no DuckDB. |
+| `API/content/stats/content.json` | Conteúdo inicial de estatísticas, importado no DuckDB. |
+| `API/content/conjuntos/content.json` | Lista inicial de conjuntos, importada no DuckDB. |
+| `API/content/accident-history/content.json` | Histórico demonstrativo inicial, importado no DuckDB. |
+| `API/content/accident-history/risk/savedData.json` | Índice heurístico legado; importado uma vez no DuckDB. |
 | `API/content/accident-history/risk/testeSalvo.json` | Artefato de teste antigo. Não é mais usado pela rota de risco. |
 
 ### Atualização e preparação dos dados
@@ -199,15 +243,15 @@ Cada posição da lista `risk` representa o km cujo número é o próprio índic
 | `ProcessamentoParametros/search-files-weather.ipynb` | Notebook exploratório para investigar arquivos meteorológicos; não é executado pela API. |
 | `ProcessamentoParametros/__init__.py` | Marcador de pacote Python. |
 | `data/accidents/non_Processed/<ano>.csv` | Download bruto anual da ARTESP. |
-| `data/accidents/processed/p<ano>.csv` | Dados usados nos cálculos e no Extra Trees, mantendo os registros da via, marginais e acessos do corredor. |
-| `data/weather-data/p<ano>.csv` | Cache de clima por acidente, usado para evitar consultas repetidas ao Open-Meteo. |
+| `data/accidents/processed/p<ano>.csv` | Histórico legado importado uma vez em `accidents`, mantendo via, marginais e acessos do corredor. |
+| `data/weather-data/p<ano>.csv` | Cache legado importado uma vez em `weather`, evitando consultas repetidas ao Open-Meteo. |
 
 ### Índice heurístico de risco
 
 | Arquivo | Responsabilidade |
 | --- | --- |
-| `ModeloEstatistico/core/riskCalculations.py` | Lê os dados processados, recupera/cacheia o clima, calcula gravidade, chuva, recência e `TAU`, e grava `savedData.json`. Todos os caminhos são derivados do próprio arquivo, portanto independem do diretório do terminal. |
-| `ModeloEstatistico/data_tau/tau.csv` | Tabela de pesos por classe e subclasse de acidente. |
+| `ModeloEstatistico/core/riskCalculations.py` | Lê acidentes, clima e TAU do DuckDB, calcula gravidade, chuva e recência, e grava o índice no banco. |
+| `ModeloEstatistico/data_tau/tau.csv` | Tabela inicial de pesos por classe e subclasse, importada em `tau`. |
 | `ModeloEstatistico/core/__init__.py` | Marcador de pacote Python. |
 
 ### Experimento de aprendizado de máquina
@@ -218,7 +262,7 @@ Cada posição da lista `risk` representa o km cujo número é o próprio índic
 | `ModeloEstatistico/context_features.py` | Carrega e normaliza variáveis externas: fluxo, pesados, chuva, vento, velocidade, obras, geometria, acessos e calendário. Fluxo observado é deslocado para o mês seguinte para não vazar o alvo. |
 | `ModeloEstatistico/data_tau/grid_search_report.json` | Resultado mais recente da busca de parâmetros do Extra Trees. |
 | `ModeloEstatistico/data_tau/ranking_km_previsto.csv` | Ranking gerado pelo modelo para avaliação. |
-| `ModeloEstatistico/data_tau/previsao_proximo_mes.csv` | Previsão do próximo mês, lida por `/predictionData`. |
+| `ModeloEstatistico/data_tau/previsao_proximo_mes.csv` | Exportação para análise e carga inicial; as previsões novas são publicadas no DuckDB. |
 | `ModeloEstatistico/data_tau/external/README.md` | Contrato e exemplos de dados contextuais externos. |
 | `ModeloEstatistico/data_tau/external/*.example` | Modelos de CSV para infraestrutura, tráfego, velocidade e obras. |
 | `ModeloEstatistico/data_tau/external/raw/contagem_diaria_*.csv` | Contagens diárias da ARTESP, usadas como fluxo e proporção de pesados. |
@@ -240,7 +284,7 @@ Cada posição da lista `risk` representa o km cujo número é o próprio índic
 
 | Arquivo | Responsabilidade |
 | --- | --- |
-| `requirements.txt` | Dependências Python do backend, incluindo FastAPI, Pandas, Requests, GeoPandas, PyTorch e `scikit-learn`, necessário para o Extra Trees. |
+| `requirements.txt` | Dependências Python do backend, incluindo DuckDB, FastAPI, Pandas, Requests, GeoPandas, PyTorch e `scikit-learn`, necessário para o Extra Trees. |
 
 ## Verificações rápidas
 
@@ -258,10 +302,16 @@ npm --prefix RoadFixer run lint
 npm --prefix RoadFixer run build
 ```
 
+Para validar a migração, as rotas e as atualizações sem acessar serviços externos:
+
+```bash
+python -m unittest discover -s RoadFixerAPI/tests -v
+```
+
 ## Limites conhecidos
 
-- O arquivo `savedData.json` só terá valores diferentes de zero depois de uma
-  execução bem-sucedida do cálculo de risco.
+- O índice no DuckDB é atualizado após uma execução bem-sucedida do cálculo
+  de risco. Sem dados importados ou calculados, a rota retorna o fallback vazio.
 - A atualização automática depende de ARTESP e Open-Meteo estarem
   disponíveis.
 - O Extra Trees gera uma previsão separada em `/predictionData`; ela não deve
