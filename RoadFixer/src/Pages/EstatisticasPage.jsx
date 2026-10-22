@@ -15,9 +15,10 @@ async function getReports() {
 
 async function getRiskData() {
   const res = await fetch(apiPath + "riskData");
+  if (!res.ok) throw new Error(`Falha ao carregar risco: HTTP ${res.status}`);
   const data = await res.json();
-  const formatted = data.risk.map((valor, index) => ({ KM: String(index), risco: valor }));
-  return formatted;
+  const formatted = (Array.isArray(data.risk) ? data.risk : []).map((valor, index) => ({ KM: String(index), risco: valor }));
+  return { formatted, metadata: data, details: Array.isArray(data.trechos) ? data.trechos : [] };
 }
 
 async function getPredictionData() {
@@ -58,25 +59,36 @@ export default function EstatisticasPage() {
         console.error("Erro ao carregar dados das estatísticas:", error);
       }
     };
-
     loadData();
   }, []);
 
-  if (reports === null) {
-    return (
-      <div className={styles.loadingContainer}>
-        <div className={styles.spinner}></div>
-        <p className={styles.loadingText}>Carregando estatísticas...</p>
-      </div>
-    );
-  }
+  // Monta { KM, valor, risco } para o tipo atual. "risco" é a versão 0–10 usada nas cores.
+  const dadosAtuais = useMemo(() => {
+    const tipo = TIPOS_DADO.find((t) => t.label === tipoDado);
+    const valores = series[tipoDado] ?? [];
+    const max = tipo?.escalaFixa ? 10 : Math.max(...valores, 0);
+
+    return valores.map((valor, i) => ({
+      KM: String(i),
+      valor,
+      risco: max > 0 ? Math.min((valor / max) * 10, 10) : 0,
+    }));
+  }, [tipoDado, series]);
+
+  const tipoAtual = TIPOS_DADO.find((t) => t.label === tipoDado);
+
+  const handleTipoChange = (e) => {
+    const valor = e.target.value;
+    setInputValue(valor);
+    if (series[valor]) setTipoDado(valor); // só aceita opções com dados carregados
+  };
 
   return (
     <div className={styles.pageWrapper}>
       {/* SEÇÃO 1: ÍNDICE HISTÓRICO */}
       <section className={styles.section}>
         <div className={styles.header}>
-          <p className={styles.kicker}>DIAGNÓSTICO INICIAL</p>
+          <p className={styles.kicker}>PREVISÃO PARA TRIAGEM HUMANA</p>
           <h2 className={styles.title}>
             ÍNDICE DE RISCO <span className={styles.highlight}>HISTÓRICO</span>
           </h2>
@@ -85,12 +97,33 @@ export default function EstatisticasPage() {
           </p>
         </div>
 
+        <div className={styles.seletorDado}>
+          <label htmlFor="tipoDado">Dado exibido</label>
+          <input
+            id="tipoDado"
+            list="options"
+            value={inputValue}
+            onChange={handleTipoChange}
+            onFocus={() => setInputValue("")}
+            onBlur={() => setInputValue(tipoDado)}
+            placeholder="Selecione o tipo de dado"
+          />
+          <datalist id="options">
+            {TIPOS_DADO.filter((t) => series[t.label]).map((t) => (
+              <option key={t.label} value={t.label} />
+            ))}
+          </datalist>
+          {!tipoAtual?.escalaFixa && (
+            <small>Cores relativas ao maior valor da via para este dado.</small>
+          )}
+        </div>
+
         <div className={styles.dataGrid}>
           <div className={styles.mapCard}>
-            <Map marks={marks} center={defaultCenter} zoom={10} />
+            <Map risk={dadosAtuais} label={tipoDado} marks={marks} center={defaultCenter} zoom={10} />
           </div>
           <div className={styles.graphCard}>
-            <Graph data={riskData} />
+            <Graph data={dadosAtuais} label={tipoDado} escalaFixa={!!tipoAtual?.escalaFixa} />
           </div>
         </div>
       </section>

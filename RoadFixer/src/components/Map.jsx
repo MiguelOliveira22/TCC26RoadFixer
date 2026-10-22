@@ -1,5 +1,6 @@
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { CircleMarker, MapContainer, Popup, TileLayer, GeoJSON, useMap } from 'react-leaflet';
+import { buildRiskSegments, riskColor } from '../utils/buildRiskSegments';
 import anhangueraData from "../anhanguera.json";
 import styles from "./Map.module.css";
 
@@ -33,7 +34,28 @@ function MapFixer({ center }) {
     return null;
 }
 
-export default function Map({ marks = [], center = ANHANGUERA_POSITION, zoom = 11 }) {
+export default function Map({ risk = [], marks = [], center = ANHANGUERA_POSITION, zoom = 11, label = "Risco" }) {
+    const riskValues = useMemo(
+        () => risk.map((r) => (typeof r === "number" ? r : r.risco)),
+        [risk]
+    );
+
+    // km -> valor real (para o tooltip mostrar o número verdadeiro, não o normalizado)
+    const valorPorKm = useMemo(() => {
+        const m = {};
+        risk.forEach((r) => {
+            if (typeof r !== "number") m[String(r.KM)] = r.valor ?? r.risco;
+        });
+        return m;
+    }, [risk]);
+
+    const segments = useMemo(
+        () => buildRiskSegments(anhangueraData, riskValues),
+        [riskValues]
+    );
+
+    // label na key: força o GeoJSON a recriar ao trocar o tipo (ele não atualiza sozinho)
+    const geoKey = useMemo(() => `${label}|${riskValues.join(",")}`, [label, riskValues]);
     return (
         <div className={styles.grafico}>
             <div className={styles.mapWrapper}>
@@ -51,15 +73,28 @@ export default function Map({ marks = [], center = ANHANGUERA_POSITION, zoom = 1
                     <TileLayer
                         noWrap
                         bounds={SAO_PAULO_BOUNDS}
-                        url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-                        attribution='&copy; OpenStreetMap contributors'
+                        url="https://basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png?key=cb1_4cxu_1_bcf48748192f648ed948b64a" // Alterar depois para um proxy
+                        attribution="&copy; CARTO"
                     />
 
                     {anhangueraData && (
-                        <GeoJSON 
-                            data={anhangueraData} 
-                            style={ANHANGUERA_STYLE} 
-                        />
+                            <GeoJSON
+                                key={geoKey}
+                                data={segments}
+                                style={(feature) => ({
+                                    color: riskColor(feature.properties.risco),
+                                    weight: 5,
+                                    opacity: 0.95,
+                                    lineCap: "round",
+                                })}
+                                onEachFeature={(feature, layer) => {
+                                    const km = feature.properties.km;
+                                    const valor = valorPorKm[String(km)] ?? feature.properties.risco;
+                                    layer.bindTooltip(
+                                        `km ${km} · ${label.toLowerCase()} ${Number(valor).toLocaleString("pt-BR", { maximumFractionDigits: 2 })}`
+                                    );
+                                }}
+                            />
                     )}
 
                     {Array.isArray(marks) && marks.map((mark, index) => {

@@ -1,6 +1,6 @@
 {
   "modelo": "ExtraTreesRegressor",
-  "metrica_de_escolha": "severidade real capturada no top 10% de km priorizados",
+  "metrica_de_escolha": "média mensal da taxa de severidade por veículo-km capturada no top 10% de km",
   "melhores_parametros": {
     "max_depth": 8,
     "max_features": 0.7,
@@ -19,8 +19,8 @@
     "severidade_90d",
     "acidentes_365d",
     "severidade_365d",
-    "mes",
-    "ano",
+    "mes_seno",
+    "mes_cosseno",
     "fim_de_semana",
     "feriado",
     "fluxo_total",

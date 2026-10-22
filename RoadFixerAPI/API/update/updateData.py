@@ -1,26 +1,29 @@
 import pandas as pd
 import requests
 from io import StringIO
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 import asyncio
 import re
+import json
 
-from ..database import get_database
-from ..ModeloEstatistico.core import riskCalculations as calc
-from ..ModeloEstatistico.grid_search import run as run_prediction
+from ModeloEstatistico.core import riskCalculations as fallback_risk
+from ModeloEstatistico.grid_search import run as run_risk_model
 
-BASE_DIR = Path(__file__).resolve().parent.parent
+BASE_DIR = Path(__file__).parent.parent.parent
 
 def prepararPastas():
     pastaData = BASE_DIR / "data/accidents"
     pastaWeather = BASE_DIR / "data/weather-data"
-
-    (pastaData / "non_Processed").mkdir(parents=True, exist_ok=True)
+    pastaSAT = BASE_DIR / "data/SAT"
     (pastaData / "processed").mkdir(parents=True, exist_ok=True)
+    (pastaData / "non_Processed").mkdir(parents=True, exist_ok=True)
     pastaWeather.mkdir(parents=True, exist_ok=True)
+    pastaSAT.mkdir(parents=True, exist_ok=True)
+    (pastaSAT / "processed").mkdir(parents=True, exist_ok=True)
+    (pastaSAT / "non_Processed").mkdir(parents=True, exist_ok=True)
 
-    return pastaData, pastaWeather
+    return pastaData, pastaWeather, pastaSAT
 
 # ========================================================
 # FUNÇÕES DE NORMALIZAÇÃO DA ARTESP
@@ -104,9 +107,82 @@ def normalizar_subclasse(s):
 # ========================================================
 # ATUALIZAÇÃO ARTESP E CLIMA
 # ========================================================
+
+def iniciarAtualizacao():
+    return asyncio.create_task(atualizacaoDiaria())
+
+async def atualizacaoDiaria():
+    while True:
+        try:
+            print("[SCHEDULER] Executando atualização...")
+            await asyncio.to_thread(atualizarSistema)
+        except Exception as e:
+            print(f"[SCHEDULER] Erro na atualização: {e}")
+
+        agora = datetime.now()
+        proxima = (agora + timedelta(days=1)).replace(hour=23, minute=50, second=0, microsecond=0)
+        espera = (proxima - datetime.now()).total_seconds()
+
+        print(f"[SCHEDULER] Próxima atualização: {proxima.strftime('%d/%m/%Y %H:%M:%S')}")
+        await asyncio.sleep(espera)
+
+def atualizarSistema():
+    ano = datetime.now().year
+
+    print(f"\n===== ATUALIZAÇÃO DO SISTEMA {ano} =====\n")
+    prepararPastas()
+
+    artesp_ok = atualizarARTESP()
+    sat_ok = atualizarSAT()
+
+    if artesp_ok:
+        print("\n===== Treinando e publicando previsão de risco =====\n")
+        try:
+            model_dir = BASE_DIR / "ModeloEstatistico"
+            run_risk_model(
+                data_dir=BASE_DIR / "data" / "accidents" / "processed",
+                output=model_dir / "data_tau" / "grid_search_report.json",
+                top_fraction=0.10,
+                external_dir=model_dir / "data_tau" / "external",
+            )
+            print("[UPDATE] Dados e previsão atualizados com sucesso.")
+        except Exception as error:
+            # A API continua disponível, mas a resposta deixa explícito que o
+            # índice não foi produzido pelo modelo de exposição ajustada.
+            print(f"[UPDATE] Falha no modelo temporal: {error}. Gerando fallback histórico.")
+            fallback_risk.calcAccidents()
+            risk_path = BASE_DIR / "API" / "content" / "accident-history" / "risk" / "savedData.json"
+            if risk_path.exists():
+                payload = json.loads(risk_path.read_text(encoding="utf-8"))
+                now = datetime.now(timezone.utc)
+                next_month = (now.replace(day=1) + timedelta(days=32)).replace(day=1)
+                payload.update({
+                    "last_update": now.strftime("%Y-%m-%dT%H:%M:%SZ"),
+                    "periodo_previsto": next_month.strftime("%Y-%m"),
+                    "metodo": "Fallback heurístico histórico - não ajustado por veículos-km",
+                    "estado_modelo": "fallback",
+                    "aviso": f"O modelo principal falhou ({type(error).__name__}); este índice usa a regra histórica.",
+                    "trechos": [],
+                    "faixa_previsao": {
+                        "aviso": "O fallback não gera faixa de previsão calibrada."
+                    },
+                    "metricas": {},
+                    "qualidade_dados": {
+                        "exposicao_veiculo_km": "não aplicada no fallback",
+                        "validacao_operacional": "necessária",
+                    },
+                })
+                temporary_path = risk_path.with_suffix(".json.tmp")
+                temporary_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
+                temporary_path.replace(risk_path)
+        return True
+
+    print("[UPDATE] Houve erro na atualização.")
+    return False
+
 def atualizarARTESP():
     ano = datetime.now().year
-    pastaData, _ = prepararPastas()
+    pastaData, _, _ = prepararPastas()
 
     URL = (
         f"https://dadosabertos.artesp.sp.gov.br/dataset/"
@@ -135,8 +211,7 @@ def atualizarARTESP():
 
             data = pd.concat([data, df_expanded], axis=1)
             data = data.drop(columns="VEICULOS_ENVOLVIDOS")
-            
-            data["NUMVEÍCULOS"] = data.loc[:, 'AUTOMÓVEL' : "CARRETINHA"].sum(axis=1)
+            data["NUMVEÍCULOS"] = df_expanded.sum(axis=1)
 
         data["RODOVIA"] = data["RODOVIA"].astype(str).str.upper().str.strip()
         data.to_csv(arquivoCompleto, index=False, encoding="utf-8")
@@ -154,7 +229,7 @@ def atualizarARTESP():
             if "HORA" in anhanguera.columns:
                 anhanguera = anhanguera.sort_values(["DATA", "HORA"])
 
-        colunas_remover = ["_id", "VITIMAS_SEM_INFO", "VITIMA_ILESA", "VISIBILIDADE", "CONDICAO_METERIOLOGICA"]
+        colunas_remover = ["_id", "VITIMAS_SEM_INFO", "VISIBILIDADE", "CONDICAO_METERIOLOGICA"]
         anhanguera = anhanguera.drop(columns=[col for col in colunas_remover if col in anhanguera.columns])
 
         get_database().save_accidents(f"p{ano}.csv", anhanguera)
@@ -166,51 +241,39 @@ def atualizarARTESP():
         print(f"[ARTESP] Erro: {e}")
         return False
 
-
-def atualizarSistema():
+def atualizarSAT():
     ano = datetime.now().year
+    _, _, pastaSAT = prepararPastas()
 
-    print(f"\n===== ATUALIZAÇÃO DO SISTEMA {ano} =====\n")
-    prepararPastas()
+    URL = (
+        f"https://dadosabertos.artesp.sp.gov.br/dataset/"
+        f"63017848-7c66-4a35-9c9a-ad4ef855b9c2/resource/"
+        f"6c7b98fb-822d-45d1-b230-2b9791bab265/download/"
+        f"contagem_sat_dia_{ano}.csv"  
+    )
 
-    artesp_ok = atualizarARTESP()
+    arquivoCompleto = pastaSAT / "non_Processed" / f"{ano}.csv"
+    arquivoSat = pastaSAT / "processed" / f"p{ano}.csv"
 
-    print("\n===== Realizando o Calculo dos Riscos =====\n")
-    calc.calcAccidents()
-
-    print("\n===== Gerando Previsão Extra Trees =====\n")
     try:
-        report = run_prediction()
-        print(
-            "[ML] Previsão gerada para "
-            f"{report['proximo_periodo_previsto']} em {report['arquivo_previsao']}."
-        )
-    except Exception as error:
-        # A API continua servindo o risco heurístico mesmo se fontes opcionais
-        # ou dependências do modelo estiverem indisponíveis.
-        print(f"[ML] Não foi possível gerar a previsão: {error}")
+        print(f"[SAT] Baixando dados de {ano}...")
+        response = requests.get(URL, timeout=60)
+        response.raise_for_status()
 
-    if artesp_ok:
-        print("[UPDATE] Dados atualizados com sucesso.")
+        data = pd.read_csv(StringIO(response.content.decode("utf-8")))
+        data.to_csv(arquivoCompleto, index=False, encoding="utf-8")
+
+        data["VOLUME_TRAFEGO"] = data.loc[:, 'QTD_MOTO' : "QTD_COMERCIAL"].sum(axis=1)
+
+        anhanguera = data[data["RODOVIA"].str.contains("330", na=False)].copy()
+        anhanguera = anhanguera.sort_values(by=[anhanguera.DATA.name], ascending=True)
+
+        colunas_remover = ["CONCESSIONARIA", "RA", "COMPLEMENTO", "QTD_MOTO", "QTD_PASSEIO", "QTD_COMERCIAL"]
+        anhanguera = anhanguera.drop(columns=[col for col in colunas_remover if col in anhanguera.columns])
+
+        anhanguera.to_csv(arquivoSat, index=False, encoding="utf-8")
+        print(f"[SAT] {len(anhanguera)} dados da Anhanguera processados e salvos.")
         return True
-
-    print("[UPDATE] Houve erro na atualização.")
-    return False
-
-async def atualizacaoDiaria():
-    while True:
-        try:
-            print("[SCHEDULER] Executando atualização...")
-            await asyncio.to_thread(atualizarSistema)
-        except Exception as e:
-            print(f"[SCHEDULER] Erro na atualização: {e}")
-
-        agora = datetime.now()
-        proxima = (agora + timedelta(days=1)).replace(hour=23, minute=50, second=0, microsecond=0)
-        espera = (proxima - datetime.now()).total_seconds()
-
-        print(f"[SCHEDULER] Próxima atualização: {proxima.strftime('%d/%m/%Y %H:%M:%S')}")
-        await asyncio.sleep(espera)
-
-def iniciarAtualizacao():
-    return asyncio.create_task(atualizacaoDiaria())
+    except Exception as e:
+        print(f"[SAT] Erro: {e}")
+        return False

@@ -11,14 +11,15 @@ import {
 import styles from './Graph.module.css';
 import FilledButton from './Button/FilledButton';
 
-// Tooltip customizado com o estilo do site
-const CustomTooltip = ({ active, payload, label }) => {
+const fmt = (v) => Number(v).toLocaleString("pt-BR", { maximumFractionDigits: 2 });
+
+const CustomTooltip = ({ active, payload, label, nomeDado }) => {
   if (active && payload && payload.length) {
     return (
       <div className={styles.customTooltip}>
         <p className={styles.tooltipLabel}>{`Km: ${label}`}</p>
         <p className={styles.tooltipValue}>
-          Nível de Risco: <span>{payload[0].value.toFixed(2)}</span>
+          {nomeDado}: <span>{fmt(payload[0].value)}</span>
         </p>
       </div>
     );
@@ -26,7 +27,7 @@ const CustomTooltip = ({ active, payload, label }) => {
   return null;
 };
 
-export default function Graph({ data }) {
+export default function Graph({ data, label = "Risco", escalaFixa = true }) {
   const [kilometer, setKilometer] = useState(0);
   const [inputValue, setInputValue] = useState('0');
 
@@ -45,7 +46,6 @@ export default function Graph({ data }) {
   }
 
   const filterData = data ? data.slice(min, max) : [];
-  const keyNames = filterData.length > 0 ? Object.keys(filterData[0]) : ['km', 'risco'];
 
   const updateData = () => {
     let numVal = Number(inputValue);
@@ -79,7 +79,7 @@ export default function Graph({ data }) {
       {/* Cabeçalho decorativo do card */}
       <div className={styles.cardHeader}>
         <div>
-          <h3 className={styles.cardTitle}>Análise de Risco da Via</h3>
+          <h3 className={styles.cardTitle}>Análise: {label}</h3>
           <p className={styles.cardSubtitle}>Visualização detalhada por trecho quilométrico</p>
         </div>
         <div className={styles.badgeKm}>
@@ -102,7 +102,7 @@ export default function Graph({ data }) {
             <CartesianGrid strokeDasharray="3 3" stroke="rgba(255, 255, 255, 0.07)" vertical={false} />
 
             <XAxis
-              dataKey={keyNames[0]}
+              dataKey={"KM"}
               stroke="#888"
               tick={{ fill: '#aaa', fontSize: 11 }}
               dy={10}
@@ -116,11 +116,12 @@ export default function Graph({ data }) {
             />
 
             <YAxis
-              domain={[0, 10]}
+              domain={escalaFixa ? [0, 10] : [0, "auto"]}
+              tickFormatter={(v) => new Intl.NumberFormat("pt-BR", { notation: "compact" }).format(v)}
               stroke="#888"
               tick={{ fill: '#aaa', fontSize: 11 }}
               label={{
-                value: 'Nível de Risco',
+                value: label,
                 angle: -90,
                 position: 'insideLeft',
                 offset: 15,
@@ -129,11 +130,11 @@ export default function Graph({ data }) {
               }}
             />
 
-            <Tooltip content={<CustomTooltip />} />
+            <Tooltip content={<CustomTooltip nomeDado={label} />} />
 
             <Area
               type="monotone"
-              dataKey={keyNames[1]}
+              dataKey={"valor"}
               stroke="var(--laranja, #ff7300)"
               strokeWidth={2.5}
               fillOpacity={1}
