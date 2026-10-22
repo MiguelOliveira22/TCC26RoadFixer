@@ -87,6 +87,8 @@ def add_traffic(panel: pd.DataFrame, path: Path | list[Path]) -> pd.DataFrame:
     traffic["KM"] = traffic["KM"].round().astype(int)
     traffic = traffic.groupby(["PERIODO", "KM"], as_index=False).sum(numeric_only=True)
     traffic["percentual_pesados"] = (traffic["fluxo_pesados"] / traffic["fluxo_total"].clip(lower=1)).clip(0, 1)
+    # O volume observado no mês atual só pode explicar a previsão do mês seguinte.
+    traffic["PERIODO"] = traffic["PERIODO"] + 1
     return _nearest_by_month(panel, traffic, ["fluxo_total", "fluxo_pesados", "percentual_pesados"])
 
 

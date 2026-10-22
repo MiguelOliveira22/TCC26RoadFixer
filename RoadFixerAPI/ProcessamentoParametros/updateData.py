@@ -5,14 +5,19 @@ from datetime import datetime, timedelta
 from pathlib import Path
 import asyncio
 import re
-import os
-import ModeloEstatistico.core.riskCalculations as calc
+
+from ..ModeloEstatistico.core import riskCalculations as calc
+from ..ModeloEstatistico.grid_search import run as run_prediction
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 def prepararPastas():
     pastaData = BASE_DIR / "data/accidents"
     pastaWeather = BASE_DIR / "data/weather-data"
+
+    (pastaData / "non_Processed").mkdir(parents=True, exist_ok=True)
+    (pastaData / "processed").mkdir(parents=True, exist_ok=True)
+    pastaWeather.mkdir(parents=True, exist_ok=True)
 
     return pastaData, pastaWeather
 
@@ -100,7 +105,7 @@ def normalizar_subclasse(s):
 # ========================================================
 def atualizarARTESP():
     ano = datetime.now().year
-    pastaData, _ = prepararPastas(ano)
+    pastaData, _ = prepararPastas()
 
     URL = (
         f"https://dadosabertos.artesp.sp.gov.br/dataset/"
@@ -129,14 +134,20 @@ def atualizarARTESP():
             df_expanded = pd.json_normalize(df_dicts).fillna(0)
 
             data = pd.concat([data, df_expanded], axis=1)
-            data.drop(columns="VEICULOS_ENVOLVIDOS")
+            data = data.drop(columns="VEICULOS_ENVOLVIDOS")
             
             data["NUMVEÍCULOS"] = data.loc[:, 'AUTOMÓVEL' : "CARRETINHA"].sum(axis=1)
 
         data["RODOVIA"] = data["RODOVIA"].astype(str).str.upper().str.strip()
         data.to_csv(arquivoCompleto, index=False, encoding="utf-8")
 
+        # Escopo mantido: inclui acidentes na via principal e acessos marginais
+        # da SP330 por decisão de projeto. Não restringir a igualdade "SP330".
         anhanguera = data[data["RODOVIA"].str.contains("330", na=False)].copy()
+        print(
+            "[ARTESP] Escopo mantido: inclui acidentes na via principal e "
+            "acessos marginais da SP330 por decisão de projeto."
+        )
 
         if "DATA" in anhanguera.columns:
             anhanguera["DATA"] = pd.to_datetime(anhanguera["DATA"], errors="coerce")
@@ -162,10 +173,22 @@ def atualizarSistema():
     print(f"\n===== ATUALIZAÇÃO DO SISTEMA {ano} =====\n")
     prepararPastas()
 
+    artesp_ok = atualizarARTESP()
+
     print("\n===== Realizando o Calculo dos Riscos =====\n")
     calc.calcAccidents()
 
-    artesp_ok = atualizarARTESP()
+    print("\n===== Gerando Previsão Extra Trees =====\n")
+    try:
+        report = run_prediction()
+        print(
+            "[ML] Previsão gerada para "
+            f"{report['proximo_periodo_previsto']} em {report['arquivo_previsao']}."
+        )
+    except Exception as error:
+        # A API continua servindo o risco heurístico mesmo se fontes opcionais
+        # ou dependências do modelo estiverem indisponíveis.
+        print(f"[ML] Não foi possível gerar a previsão: {error}")
 
     if artesp_ok:
         print("[UPDATE] Dados atualizados com sucesso.")

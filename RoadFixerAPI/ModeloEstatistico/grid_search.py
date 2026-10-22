@@ -16,12 +16,18 @@ from sklearn.ensemble import ExtraTreesRegressor
 from sklearn.metrics import mean_absolute_error
 from sklearn.model_selection import GridSearchCV
 
-from context_features import enrich
+try:
+    from .context_features import enrich
+except ImportError:  # Mantém compatibilidade com a execução direta do arquivo.
+    from context_features import enrich
 
 
 BASE_DIR = Path(__file__).resolve().parent
-DEFAULT_DATA_DIR = BASE_DIR / "data" / "accidents"
-DEFAULT_INMET_DIR = BASE_DIR.parent / "ProcessamentoParametros" / "weather-data"
+ROADFIXER_API_DIR = BASE_DIR.parent
+DEFAULT_DATA_DIR = ROADFIXER_API_DIR / "data" / "accidents" / "processed"
+DEFAULT_EXTERNAL_DIR = BASE_DIR / "data_tau" / "external"
+DEFAULT_OUTPUT = BASE_DIR / "data_tau" / "grid_search_report.json"
+DEFAULT_INMET_DIR = None
 
 
 def severity(row: pd.Series) -> float:
@@ -57,13 +63,23 @@ def load_accidents(data_dir: Path) -> pd.DataFrame:
     return data
 
 
-def make_dataset(accidents: pd.DataFrame, external_dir: Path | None = None, inmet_dir: Path | None = DEFAULT_INMET_DIR) -> pd.DataFrame:
+def make_dataset(
+    accidents: pd.DataFrame,
+    external_dir: Path | None = None,
+    inmet_dir: Path | None = DEFAULT_INMET_DIR,
+    include_forecast_month: bool = False,
+) -> pd.DataFrame:
     """Cria uma linha por km/mês e variáveis calculadas somente do passado."""
     accidents["PERIODO"] = accidents["DATA"].dt.to_period("M")
     monthly = accidents.groupby(["PERIODO", "KM"], as_index=False).agg(
         acidentes=("SEVERIDADE", "size"), severidade=("SEVERIDADE", "sum")
     )
-    periods = pd.period_range(monthly["PERIODO"].min(), monthly["PERIODO"].max(), freq="M")
+    last_observed_period = monthly["PERIODO"].max()
+    periods = pd.period_range(
+        monthly["PERIODO"].min(),
+        last_observed_period + int(include_forecast_month),
+        freq="M",
+    )
     kms = range(int(monthly["KM"].min()), int(monthly["KM"].max()) + 1)
     panel = pd.MultiIndex.from_product([periods, kms], names=["PERIODO", "KM"]).to_frame(index=False)
     panel = panel.merge(monthly, on=["PERIODO", "KM"], how="left").fillna({"acidentes": 0, "severidade": 0})
@@ -109,8 +125,21 @@ def temporal_splits(data: pd.DataFrame, folds: int = 3):
     return splits
 
 
-def run(data_dir: Path, output: Path, top_fraction: float, external_dir: Path | None = None, inmet_dir: Path | None = DEFAULT_INMET_DIR) -> dict:
-    data = make_dataset(load_accidents(data_dir), external_dir, inmet_dir)
+def run(
+    data_dir: Path = DEFAULT_DATA_DIR,
+    output: Path = DEFAULT_OUTPUT,
+    top_fraction: float = 0.10,
+    external_dir: Path | None = DEFAULT_EXTERNAL_DIR,
+    inmet_dir: Path | None = DEFAULT_INMET_DIR,
+) -> dict:
+    accidents = load_accidents(data_dir)
+    # O painel é montado uma única vez, inclusive com o próximo mês. Isso evita
+    # reler milhões de linhas de tráfego para treinar e depois prever.
+    forecast_data = make_dataset(
+        accidents.copy(), external_dir, inmet_dir, include_forecast_month=True
+    )
+    forecast_period = accidents["DATA"].dt.to_period("M").max() + 1
+    data = forecast_data[forecast_data["PERIODO"] != forecast_period].copy()
     excluded = {"PERIODO", "acidentes", "severidade"}
     feature_columns = [column for column in data.columns if column not in excluded and pd.api.types.is_numeric_dtype(data[column])]
     data[feature_columns] = data[feature_columns].apply(pd.to_numeric, errors="coerce").fillna(0)
@@ -145,6 +174,23 @@ def run(data_dir: Path, output: Path, top_fraction: float, external_dir: Path | 
     ranked["risco_previsto"] = predictions
     ranked = ranked.sort_values("risco_previsto", ascending=False)
 
+    # Após validar os parâmetros em anos anteriores, o modelo final aprende com
+    # todo o histórico disponível e estima somente o próximo mês sem alvo conhecido.
+    final_model = ExtraTreesRegressor(random_state=42, n_jobs=1, **search.best_params_)
+    final_model.fit(data[feature_columns], data["severidade"])
+    forecast = forecast_data[forecast_data["PERIODO"] == forecast_period].copy()
+    if forecast.empty:
+        raise ValueError("Não foi possível criar as linhas de previsão do próximo mês.")
+    forecast_features = forecast.reindex(columns=feature_columns).apply(
+        pd.to_numeric, errors="coerce"
+    ).fillna(0)
+    forecast["risco_previsto"] = final_model.predict(forecast_features).clip(min=0)
+    forecast = forecast[["PERIODO", "KM", "risco_previsto"]].sort_values(
+        "risco_previsto", ascending=False
+    )
+
+    prediction_output = output.with_name("previsao_proximo_mes.csv")
+
     report = {
         "modelo": "ExtraTreesRegressor",
         "metrica_de_escolha": f"severidade real capturada no top {top_fraction:.0%} de km priorizados",
@@ -154,21 +200,24 @@ def run(data_dir: Path, output: Path, top_fraction: float, external_dir: Path | 
         "captura_no_teste": round(emergency_capture(test["severidade"], predictions, top_fraction), 4),
         "mae_no_teste": round(float(mean_absolute_error(test["severidade"], predictions)), 4),
         "variaveis": feature_columns,
-        "alerta": "O ranking mede risco histórico. Antes de uso operacional, inclua exposição ao tráfego e valide com equipe de segurança viária.",
+        "proximo_periodo_previsto": str(forecast_period),
+        "arquivo_previsao": prediction_output.name,
+        "alerta": "A previsão é um ranking de severidade esperada. Antes de uso operacional, inclua exposição ao tráfego e valide com equipe de segurança viária.",
     }
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
     ranked.to_csv(output.with_name("ranking_km_previsto.csv"), index=False, encoding="utf-8")
+    forecast.to_csv(prediction_output, index=False, encoding="utf-8")
     return report
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Busca os melhores parâmetros para ordenar km emergenciais.")
     parser.add_argument("--data-dir", type=Path, default=DEFAULT_DATA_DIR)
-    parser.add_argument("--output", type=Path, default=BASE_DIR / "data" / "grid_search_report.json")
+    parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT)
     parser.add_argument("--top-fraction", type=float, default=0.10)
-    parser.add_argument("--external-dir", type=Path, help="Pasta opcional com traffic.csv, weather.csv, works.csv e infrastructure.csv")
-    parser.add_argument("--inmet-dir", type=Path, default=DEFAULT_INMET_DIR, help="Pasta dos CSVs horários do INMET")
+    parser.add_argument("--external-dir", type=Path, default=DEFAULT_EXTERNAL_DIR, help="Pasta opcional com traffic.csv, weather.csv, works.csv e infrastructure.csv")
+    parser.add_argument("--inmet-dir", type=Path, default=DEFAULT_INMET_DIR, help="Pasta opcional dos CSVs horários do INMET")
     args = parser.parse_args()
     if not 0 < args.top_fraction <= 1:
         parser.error("--top-fraction deve estar entre 0 e 1.")

@@ -1,5 +1,4 @@
 from datetime import datetime
-import os
 from pathlib import Path
 
 import requests
@@ -9,12 +8,14 @@ import time
 import statistics
 import math
 
-filepath = Path("./data/accidents/processed")
-filepathTau = Path("./ModeloEstatistico/data_tau")
-filepathRisk = Path("./API/content/accident-history")
-filepathWeather = Path("./data/weather-data")
+# Todos os caminhos partem da pasta RoadFixerAPI, não do diretório de execução.
+API_ROOT_DIR = Path(__file__).resolve().parents[2]
+filepath = API_ROOT_DIR / "data" / "accidents" / "processed"
+filepathTau = API_ROOT_DIR / "ModeloEstatistico" / "data_tau"
+filepathRisk = API_ROOT_DIR / "API" / "content" / "accident-history"
+filepathWeather = API_ROOT_DIR / "data" / "weather-data"
 
-TAUTABLE = pd.read_csv(str(filepathTau) + "/tau.csv", encoding="utf-8")
+TAUTABLE = pd.read_csv(filepathTau / "tau.csv", encoding="utf-8")
 
 def calcAccidents():
     directory = Path(filepath)
@@ -30,7 +31,7 @@ def calcAccidents():
 
         for file_path in directory.iterdir():
             fileWeather = Path(filepathWeather, file_path.name)
-            if os.path.exists(fileWeather):
+            if fileWeather.exists():
                 weatherAtual = pd.read_csv(fileWeather)
             else:
                 weatherAtual = None
@@ -179,7 +180,7 @@ def calcAccidents():
                         print(novos_dados)
 
                         # 1. Se o arquivo já existe, lê e junta os dados
-                        if os.path.exists(fileWeather):
+                        if fileWeather.exists():
                             weatherAtual = pd.read_csv(fileWeather)
                             # Concatena o atual com os novos dados
                             weatherFinal = pd.concat([weatherAtual, novos_dados], ignore_index=True)
@@ -237,12 +238,15 @@ def getRiskFromTauTable(acidente: pd.DataFrame):
 
     return resultado.values[0] if not resultado.empty else 0
 
-def calculateFatorClimatico(clima: dict[str, any]):
-    MAXIMO_DIA_SECO = 1.0
-    VIES_RISCO_CHUVA = 0.5
-    VIES_RISCO_MAX_CHUVA = 20.0
+def calculateFatorClimatico(clima: dict[str, object]):
+    """Retorna um multiplicador de risco: chuva nunca reduz o risco histórico."""
+    FATOR_DIA_SECO = 1.0
+    AUMENTO_MAXIMO_POR_CHUVA = 0.5
+    CHUVA_REFERENCIA_MM = 20.0
 
-    return MAXIMO_DIA_SECO - (VIES_RISCO_CHUVA * min(MAXIMO_DIA_SECO, clima["CHUVA"] / VIES_RISCO_MAX_CHUVA))
+    chuva_mm = max(0.0, float(clima.get("CHUVA", 0) or 0))
+    intensidade_normalizada = min(1.0, chuva_mm / CHUVA_REFERENCIA_MM)
+    return FATOR_DIA_SECO + (AUMENTO_MAXIMO_POR_CHUVA * intensidade_normalizada)
 
 def calculateRecencia(acidente: pd.DataFrame):
     data_comparar = datetime.strptime(acidente["DATA"], "%Y-%m-%d")
@@ -250,4 +254,3 @@ def calculateRecencia(acidente: pd.DataFrame):
     diferenca_anos = (hoje.year - data_comparar.year - ((hoje.month, hoje.day) < (data_comparar.month, data_comparar.day)))
 
     return math.pow(math.e, -((math.log(2, math.e) / 3) * diferenca_anos))
-

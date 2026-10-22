@@ -12,7 +12,7 @@ export default function Features() {
   useEffect(() => {
     async function loadNetwork() {    
       try {
-        var network = await fetch(apiPath + "carddata");
+        var network = await fetch(apiPath + "carddata/");
 
         var data = await network.json();
         console.log(data);
@@ -21,7 +21,9 @@ export default function Features() {
           setCards(data.content);
         }
       }
-      catch {}
+      catch (error) {
+        console.error("Erro ao carregar os cards da API:", error);
+      }
     }
 
     loadNetwork();

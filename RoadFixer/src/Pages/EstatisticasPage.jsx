@@ -7,23 +7,36 @@ import { useEffect, useState } from "react";
 import { apiPath } from "../Constants";
 
 async function getReports() {
-  const res = await fetch(apiPath + "accidentHistory/");
+  const res = await fetch(apiPath + "accidentHistory");
   const data = await res.json();
   const formatted = data.content.map((valor) => ({ id: valor.id, data: valor.data }));
   return formatted;
 }
 
 async function getRiskData() {
-  const res = await fetch(apiPath + "riskData/");
+  const res = await fetch(apiPath + "riskData");
   const data = await res.json();
-  console.log(data)
-  const formatted = data['risk'].map((valor, index) => ({ KM: String(index + 1), risco: valor }));
+  const formatted = data.risk.map((valor, index) => ({ KM: String(index), risco: valor }));
   return formatted;
+}
+
+async function getPredictionData() {
+  const res = await fetch(apiPath + "predictionData");
+  const data = await res.json();
+  return {
+    period: data.period,
+    values: (data.predictions ?? []).map((valor) => ({
+      KM: String(valor.KM),
+      risco: valor.risco,
+    })),
+  };
 }
 
 export default function EstatisticasPage() {
   const [reports, setReports] = useState(null);
   const [riskData, setRiskData] = useState([]);
+  const [predictionData, setPredictionData] = useState([]);
+  const [predictionPeriod, setPredictionPeriod] = useState(null);
 
   // Ponto central padrão para manter a alinhamento do mapa
   const defaultCenter = [-22.92506, -47.08692];
@@ -32,9 +45,15 @@ export default function EstatisticasPage() {
   useEffect(() => {
     const loadData = async () => {
       try {
-        const [reportsData, risk] = await Promise.all([getReports(), getRiskData()]);
+        const [reportsData, risk, prediction] = await Promise.all([
+          getReports(),
+          getRiskData(),
+          getPredictionData(),
+        ]);
         setReports(reportsData);
         setRiskData(risk);
+        setPredictionData(prediction.values);
+        setPredictionPeriod(prediction.period);
       } catch (error) {
         console.error("Erro ao carregar dados das estatísticas:", error);
       }
@@ -54,15 +73,15 @@ export default function EstatisticasPage() {
 
   return (
     <div className={styles.pageWrapper}>
-      {/* SEÇÃO 1: RISCO REAL */}
+      {/* SEÇÃO 1: ÍNDICE HISTÓRICO */}
       <section className={styles.section}>
         <div className={styles.header}>
           <p className={styles.kicker}>DIAGNÓSTICO INICIAL</p>
           <h2 className={styles.title}>
-            MAPA DE RISCO <span className={styles.highlight}>REAL</span>
+            ÍNDICE DE RISCO <span className={styles.highlight}>HISTÓRICO</span>
           </h2>
           <p className={styles.subtitle}>
-            Visualização dos índices de risco registrados em tempo real ao longo dos trechos da via.
+            Índice heurístico atualizado diariamente a partir dos acidentes históricos e das condições climáticas.
           </p>
         </div>
 
@@ -76,15 +95,17 @@ export default function EstatisticasPage() {
         </div>
       </section>
 
-      {/* SEÇÃO 2: RISCO CORRIGIDO */}
+      {/* SEÇÃO 2: PREVISÃO DO MODELO */}
       <section className={styles.section}>
         <div className={styles.header}>
-          <p className={styles.kicker}>PROJEÇÃO E OTIMIZAÇÃO</p>
+          <p className={styles.kicker}>PREVISÃO DO EXTRA TREES</p>
           <h2 className={styles.title}>
-            MAPA DE RISCO <span className={styles.highlight}>CORRIGIDO</span>
+            RANKING DE RISCO <span className={styles.highlight}>PREVISTO</span>
           </h2>
           <p className={styles.subtitle}>
-            Estimativa de mitigação dos pontos críticos após a aplicação das intervenções recomendadas.
+            {predictionPeriod
+              ? `Severidade esperada por km para ${predictionPeriod}, usando somente informações anteriores.`
+              : "A previsão será exibida após a primeira execução do modelo."}
           </p>
         </div>
 
@@ -93,7 +114,7 @@ export default function EstatisticasPage() {
             <Map marks={marks} center={defaultCenter} zoom={10} />
           </div>
           <div className={styles.graphCard}>
-            <Graph data={riskData} />
+            <Graph data={predictionData} />
           </div>
         </div>
       </section>
