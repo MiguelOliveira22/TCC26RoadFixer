@@ -1,6 +1,6 @@
 {
   "modelo": "ExtraTreesRegressor",
-  "metrica_de_escolha": "média mensal da taxa de severidade por veículo-km capturada no top 10% de km",
+  "metrica_de_escolha": "severidade real capturada no top 10% de km priorizados",
   "melhores_parametros": {
     "max_depth": 8,
     "max_features": 0.7,
@@ -9,8 +9,8 @@
   },
   "validacao_temporal": 0.3848,
   "teste_ano_final": 2026,
-  "captura_no_teste": 0.3836,
-  "mae_no_teste": 1.2928,
+  "captura_no_teste": 0.3763,
+  "mae_no_teste": 1.3024,
   "variaveis": [
     "KM",
     "acidentes_30d",
@@ -19,8 +19,8 @@
     "severidade_90d",
     "acidentes_365d",
     "severidade_365d",
-    "mes_seno",
-    "mes_cosseno",
+    "mes",
+    "ano",
     "fim_de_semana",
     "feriado",
     "fluxo_total",
@@ -35,7 +35,7 @@
     "acessos_conservacao_ruim",
     "acessos_comerciais"
   ],
-  "proximo_periodo_previsto": "2026-10",
+  "proximo_periodo_previsto": "2026-11",
   "arquivo_previsao": "previsao_proximo_mes.csv",
   "alerta": "A previsão é um ranking de severidade esperada. Antes de uso operacional, inclua exposição ao tráfego e valide com equipe de segurança viária."
 }
