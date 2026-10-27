@@ -9,6 +9,8 @@ from xhtml2pdf import pisa
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import StreamingResponse, JSONResponse
 
+from RoadFixerAPI.database import get_database
+
 from ..model.datasetRequest import DatasetRequest
 
 BASE_DIR_CONTENT = Path(Path(__file__).parent.parent, "content")
@@ -101,3 +103,7 @@ def assignRoutes(api: FastAPI):
             )
         except OSError:
             raise HTTPException(status_code=503, detail="O relatório não conseguiu ser gerado.")
+
+    @api.get("/predictionData")
+    def getPredictionData():
+        return get_database().get_predictions()

@@ -7,7 +7,7 @@ import { useEffect, useState } from "react";
 import { apiPath } from "../Constants";
 
 async function getReports() {
-  const res = await fetch(apiPath + "listadatasets/");
+  const res = await fetch(apiPath + "listDatasets/");
   const data = await res.json();
   const formatted = data.content.map((valor) => ({
     id: valor.id,

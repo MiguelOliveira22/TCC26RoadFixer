@@ -20,7 +20,7 @@ export default function DataCollection({ headers, reports, title, buttonText }) 
             </tr>
           </thead>
           <tbody>
-            {reports.map((link) => (
+            {(reports ?? []).map((link) => (
               <tr key={link.id} className={styles.tr}>
                 {link.data.map((dt, idx) => (
                   <td key={idx} className={styles.td}>
