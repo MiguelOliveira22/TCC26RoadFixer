@@ -13,6 +13,9 @@ from RoadFixerAPI.ProcessamentoParametros.updateData import iniciarAtualizacao
 async def lifespan(app: FastAPI):
     await asyncio.to_thread(get_database().initialize)
     tarefa = iniciarAtualizacao() if os.environ.get("ROADFIXER_AUTO_UPDATE", "1") != "0" else None
+
+    yield
+
     try:
         await tarefa
     except asyncio.CancelledError:
