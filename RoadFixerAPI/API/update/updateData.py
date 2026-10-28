@@ -230,3 +230,7 @@ def atualizarARTESP():
     except Exception as e:
         print(f"[ARTESP] Erro: {e}")
         return False
+
+# ======
+# Atualizar Modelo e Trocar quando Possível
+# ======

@@ -71,6 +71,7 @@ def calcAccidents():
             # clima sem coordenada, e mandar NaN pro open-meteo quebra o request)
             antes = len(data)
             data = data.dropna(subset=["LATITUDE", "LONGITUDE"])
+            
             if len(data) < antes:
                 print(f"Aviso: {antes - len(data)} linha(s) descartada(s) por falta de LATITUDE/LONGITUDE")
 

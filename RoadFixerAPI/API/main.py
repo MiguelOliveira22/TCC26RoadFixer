@@ -5,6 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from API.mapping.routes import assignRoutes
 from API.update.updateData import iniciarAtualizacao
+from API.mapping.predictions import carregarModelo, assignPredictionModel
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -17,7 +18,7 @@ async def lifespan(app: FastAPI):
     except asyncio.CancelledError:
         print("Atualização dos Dados Concluída/Cancelada!")
 
-server = FastAPI(lifespan=lifespan)
+server = FastAPI(lifespan=[lifespan, carregarModelo])
 
 server.add_middleware(
     CORSMiddleware,
