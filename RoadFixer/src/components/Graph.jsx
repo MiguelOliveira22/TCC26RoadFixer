@@ -28,6 +28,7 @@ const CustomTooltip = ({ active, payload, label, nomeDado }) => {
 };
 
 export default function Graph({ data, label = "Risco", escalaFixa = true }) {
+  console.log(data)
   const [kilometer, setKilometer] = useState(0);
   const [inputValue, setInputValue] = useState('0');
 
@@ -134,7 +135,7 @@ export default function Graph({ data, label = "Risco", escalaFixa = true }) {
 
             <Area
               type="monotone"
-              dataKey={"valor"}
+              dataKey={"risco"}
               stroke="var(--laranja, #ff7300)"
               strokeWidth={2.5}
               fillOpacity={1}
