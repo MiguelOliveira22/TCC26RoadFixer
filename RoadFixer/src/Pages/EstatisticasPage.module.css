@@ -188,3 +188,147 @@
 .evidenceTable tbody tr:last-child td {
   border-bottom: 0;
 }
+
+.forecastSummaryGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  margin-bottom: 22px;
+}
+
+.forecastControls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 14px;
+  margin: -8px 0 22px;
+  padding: 14px 16px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  background: #171717;
+}
+
+.forecastControls label {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  color: #aaa;
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.forecastControls select {
+  min-width: 155px;
+  padding: 9px 34px 9px 11px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 7px;
+  outline: none;
+  background: #232323;
+  color: #fff;
+  font: inherit;
+  text-transform: none;
+}
+
+.forecastControls select:focus {
+  border-color: var(--laranja, #ff7300);
+  box-shadow: 0 0 0 2px rgba(255, 115, 0, 0.18);
+}
+
+.forecastUpdating {
+  margin: 0 0 9px auto;
+  color: #ff9540;
+  font-size: 0.78rem;
+}
+
+.forecastKpi {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  min-height: 112px;
+  padding: 18px;
+  box-sizing: border-box;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 10px;
+  background: linear-gradient(145deg, #1c1c1c, #151515);
+}
+
+.forecastKpi span {
+  color: #a8a8a8;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.forecastKpi strong {
+  color: #fff;
+  font-size: clamp(1.35rem, 2vw, 2rem);
+}
+
+.forecastKpi small {
+  color: #858585;
+}
+
+.forecastExplanation {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px 14px;
+  margin-top: 16px;
+  padding: 14px 16px;
+  border-left: 3px solid var(--laranja, #ff7300);
+  border-radius: 0 8px 8px 0;
+  background: rgba(255, 115, 0, 0.06);
+  color: #aaa;
+  font-size: 0.84rem;
+  line-height: 1.5;
+}
+
+.forecastExplanation strong {
+  color: #fff;
+  white-space: nowrap;
+}
+
+.forecastError {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  padding: 18px 20px;
+  border: 1px solid rgba(255, 115, 0, 0.35);
+  border-radius: 10px;
+  background: rgba(255, 115, 0, 0.07);
+  color: #bbb;
+}
+
+.forecastError strong {
+  color: #ff9540;
+}
+
+@media (max-width: 760px) {
+  .forecastSummaryGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 560px) {
+  .section {
+    padding: 32px 18px;
+  }
+
+  .title {
+    font-size: 1.75rem;
+  }
+
+  .forecastControls label,
+  .forecastControls select {
+    width: 100%;
+  }
+
+  .forecastUpdating {
+    margin-left: 0;
+  }
+
+  .forecastExplanation {
+    flex-direction: column;
+  }
+}

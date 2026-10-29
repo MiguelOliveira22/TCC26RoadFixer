@@ -3,8 +3,15 @@ import 'leaflet/dist/leaflet.css';
 import DataCollection from "../components/DataCollection";
 import Graph from "../components/Graph";
 import Map from "../components/Map";
+import AIForecastChart from "../components/AIForecastChart";
 import { useEffect, useState } from "react";
 import { apiPath } from "../Constants";
+
+const integerFormatter = new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 0 });
+
+function formatDate(value) {
+  return new Date(`${value}T12:00:00`).toLocaleDateString("pt-BR");
+}
 
 async function getReports() {
   const res = await fetch(apiPath + "accidentHistory/");
@@ -21,11 +28,28 @@ async function getRiskData() {
   return { formatted, metadata: data, details: Array.isArray(data.trechos) ? data.trechos : [] };
 }
 
+async function getAIForecast(days, historyDays, signal) {
+  const params = new URLSearchParams({
+    days: String(days),
+    history_days: String(historyDays),
+  });
+  const res = await fetch(`${apiPath}ai/forecast?${params}`, { signal });
+  if (!res.ok) {
+    const response = await res.json().catch(() => ({}));
+    throw new Error(response.detail || `Falha ao carregar previsão: HTTP ${res.status}`);
+  }
+  return res.json();
+}
+
 export default function EstatisticasPage() {
   const [reports, setReports] = useState(null);
   const [riskData, setRiskData] = useState([]);
   const [riskMetadata, setRiskMetadata] = useState(null);
   const [riskDetails, setRiskDetails] = useState([]);
+  const [aiForecast, setAiForecast] = useState(null);
+  const [aiForecastError, setAiForecastError] = useState("");
+  const [analysisDays, setAnalysisDays] = useState(30);
+  const [forecastLoading, setForecastLoading] = useState(true);
 
   // Ponto central padrão para manter a alinhamento do mapa
   const defaultCenter = [-22.92506, -47.08692];
@@ -33,19 +57,53 @@ export default function EstatisticasPage() {
 
   useEffect(() => {
     const loadData = async () => {
-      try {
-        const [reportsData, risk] = await Promise.all([getReports(), getRiskData()]);
-        setReports(reportsData);
-        setRiskData(risk.formatted);
-        setRiskMetadata(risk.metadata);
-        setRiskDetails(risk.details);
-      } catch (error) {
-        console.error("Erro ao carregar dados das estatísticas:", error);
+      const [reportsResult, riskResult] = await Promise.allSettled([
+        getReports(),
+        getRiskData(),
+      ]);
+
+      if (reportsResult.status === "fulfilled") {
+        setReports(reportsResult.value);
+      } else {
+        console.error("Erro ao carregar histórico:", reportsResult.reason);
+        setReports([]);
       }
+
+      if (riskResult.status === "fulfilled") {
+        setRiskData(riskResult.value.formatted);
+        setRiskMetadata(riskResult.value.metadata);
+        setRiskDetails(riskResult.value.details);
+      } else {
+        console.error("Erro ao carregar risco:", riskResult.reason);
+      }
+
     };
 
     loadData();
   }, []);
+
+  useEffect(() => {
+    const controller = new AbortController();
+
+    const loadForecast = async () => {
+      setForecastLoading(true);
+      setAiForecastError("");
+      try {
+        const result = await getAIForecast(analysisDays, analysisDays, controller.signal);
+        setAiForecast(result);
+      } catch (error) {
+        if (error.name !== "AbortError") {
+          console.error("Erro ao carregar previsão da IA:", error);
+          setAiForecastError(error.message || "A previsão está indisponível.");
+        }
+      } finally {
+        if (!controller.signal.aborted) setForecastLoading(false);
+      }
+    };
+
+    loadForecast();
+    return () => controller.abort();
+  }, [analysisDays]);
 
   if (reports === null) {
     return (
@@ -58,35 +116,77 @@ export default function EstatisticasPage() {
 
   return (
     <div className={styles.pageWrapper}>
+      <section className={styles.section} aria-labelledby="ai-forecast-title">
+        <div className={styles.header}>
+          <p className={styles.kicker}>PREVISÃO COM INTELIGÊNCIA ARTIFICIAL</p>
+          <h2 className={styles.title} id="ai-forecast-title">
+            PREVISÃO DE <span className={styles.highlight}>TRÁFEGO E ACIDENTES</span>
+          </h2>
+          <p className={styles.subtitle}>
+            O sistema estima primeiro o volume de tráfego. Esse resultado é usado para calcular a previsão diária de acidentes.
+          </p>
+        </div>
+
+        <div className={styles.forecastControls} aria-label="Períodos do gráfico">
+          <label>
+            Período de análise
+            <select value={analysisDays} onChange={(event) => setAnalysisDays(Number(event.target.value))}>
+              <option value={7}>7 dias</option>
+              <option value={15}>15 dias</option>
+              <option value={30}>30 dias</option>
+            </select>
+          </label>
+          {forecastLoading && <span className={styles.forecastUpdating}>Atualizando dados...</span>}
+        </div>
+
+        {aiForecast ? (
+          <>
+            <div className={styles.forecastSummaryGrid}>
+              <article className={styles.forecastKpi}>
+                <span>Tráfego previsto por dia</span>
+                <strong>{integerFormatter.format(aiForecast.resumo.volume_medio_diario)}</strong>
+                <small>média do período selecionado</small>
+              </article>
+              <article className={styles.forecastKpi}>
+                <span>Acidentes previstos</span>
+                <strong>{integerFormatter.format(aiForecast.resumo.acidentes_previstos_total)}</strong>
+                <small>total no período selecionado</small>
+              </article>
+              <article className={styles.forecastKpi}>
+                <span>Previsão apresentada</span>
+                <strong>{aiForecast.periodo.dias} dias</strong>
+                <small>{formatDate(aiForecast.periodo.inicio)} a {formatDate(aiForecast.periodo.fim)}</small>
+              </article>
+            </div>
+
+            <AIForecastChart data={aiForecast.previsoes} history={aiForecast.historico} />
+
+            <div className={styles.forecastExplanation}>
+              <strong>Como interpretar</strong>
+              <span>
+                A linha contínua mostra os dados já registrados. A linha tracejada mostra a previsão, e a área colorida representa a variação possível do resultado.
+              </span>
+            </div>
+          </>
+        ) : (
+          <div className={styles.forecastError} role="status">
+            <strong>Previsão da IA temporariamente indisponível</strong>
+            <span>{aiForecastError || "Carregando os modelos de previsão..."}</span>
+          </div>
+        )}
+      </section>
+
       {riskMetadata && (
         <section className={styles.metadataCard} aria-label="Atualização e qualidade da previsão">
           <div>
-            <strong>Previsão para {riskMetadata.periodo_previsto || "período não informado"}</strong>
+            <strong>Mapa de priorização por trecho</strong>
             <span>
               Atualizada em {riskMetadata.last_update
                 ? new Date(riskMetadata.last_update).toLocaleString("pt-BR")
                 : "data não informada"}
             </span>
           </div>
-          <p>{riskMetadata.aviso || riskMetadata.metodo}</p>
-          {typeof riskMetadata.qualidade_dados?.cobertura_fluxo_recente === "number" ? (
-            <p>
-              Fluxo recente disponível em {Math.round(riskMetadata.qualidade_dados.cobertura_fluxo_recente * 100)}%
-              {" "}dos trechos previstos. Os dois sentidos estão agregados em células de 1 km.
-            </p>
-          ) : riskMetadata.qualidade_dados?.exposicao_veiculo_km && (
-            <p>{riskMetadata.qualidade_dados.exposicao_veiculo_km}</p>
-          )}
-          {riskMetadata.faixa_previsao?.aviso && <small>{riskMetadata.faixa_previsao.aviso}</small>}
-          {riskMetadata.metricas?.baselines && (
-            <div className={styles.baselineSummary}>
-              <strong>Comparação no teste temporal</strong>
-              <span>Captura média mensal da taxa observada nos 10% de trechos priorizados.</span>
-              <span>ExtraTrees: {((riskMetadata.metricas.captura_mensal_teste || 0) * 100).toFixed(1)}%</span>
-              <span>Taxa dos últimos 365 dias: {((riskMetadata.metricas.baselines.taxa_historica_365d?.teste_ano_final || 0) * 100).toFixed(1)}%</span>
-              <span>Média histórica: {((riskMetadata.metricas.baselines.taxa_media_historica?.teste_ano_final || 0) * 100).toFixed(1)}%</span>
-            </div>
-          )}
+          <p>O índice destaca os trechos que merecem atenção e apoia a análise preventiva da rodovia.</p>
         </section>
       )}
 

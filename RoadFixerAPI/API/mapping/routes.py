@@ -9,10 +9,12 @@ from xhtml2pdf import pisa
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import StreamingResponse, JSONResponse
 
-from API.model.datasetRequest import DatasetRequest
+from ..model.datasetRequest import DatasetRequest
 
-BASE_DIR_CONTENT = Path(Path(__file__).parent, "content")
-BASE_DIR_DATASETS = Path(Path(__file__).parent.parent, "data")
+API_DIR = Path(__file__).resolve().parents[1]
+BASE_DIR_CONTENT = API_DIR / "content"
+BASE_DIR_DATASETS = API_DIR.parent / "data"
+REPORT_TEMPLATE = API_DIR / "reports" / "main.html"
 
 def assignRoutes(api: FastAPI):
     @api.post("/getDataset")
@@ -44,6 +46,7 @@ def assignRoutes(api: FastAPI):
             raise HTTPException(status_code=503, detail=f"O diretório {filepath} não foi encontrado.")
 
     @api.get("/listDatasets/")
+    @api.get("/listadatasets/", include_in_schema=False)
     async def listDatasets() -> JSONResponse:
         try:
             with open(Path(BASE_DIR_CONTENT, "conjuntos", "content.json"), encoding="utf-8") as file:
@@ -86,7 +89,7 @@ def assignRoutes(api: FastAPI):
     @api.get("/generateReport")
     async def generateReport() -> StreamingResponse:
         try:
-            with open(Path("..", "reports", "main.html"), "r") as html:
+            with open(REPORT_TEMPLATE, "r", encoding="utf-8") as html:
                 content = html.read()
 
             # TODO: Repor valores usando regex ou algo assim

@@ -7,10 +7,25 @@ import asyncio
 import re
 import json
 
-from RoadFixerAPI.ModeloResolucao.core import riskCalculations as fallback_risk
-from RoadFixerAPI.ModeloResolucao.grid_search import run as run_risk_model
-
 BASE_DIR = Path(__file__).parent.parent.parent
+
+
+def carregarModeloRisco():
+    try:
+        from RoadFixerAPI.ModeloResolucao.grid_search import run
+    except ModuleNotFoundError:
+        # Compatibilidade com o comando documentado executado dentro de
+        # RoadFixerAPI: uvicorn API.main:server
+        from ModeloResolucao.grid_search import run
+    return run
+
+
+def carregarFallbackRisco():
+    try:
+        from RoadFixerAPI.ModeloResolucao.core import riskCalculations
+    except ModuleNotFoundError:
+        from ModeloResolucao.core import riskCalculations
+    return riskCalculations
 
 def prepararPastas():
     pastaData = BASE_DIR / "data/accidents"
@@ -133,6 +148,7 @@ def atualizarSistema():
     if artesp_ok:
         print("\n===== Treinando e publicando previsão de risco =====\n")
         try:
+            run_risk_model = carregarModeloRisco()
             model_dir = BASE_DIR / "ModeloEstatistico"
             run_risk_model(
                 data_dir=BASE_DIR / "data" / "accidents" / "processed",
@@ -145,7 +161,7 @@ def atualizarSistema():
             # A API continua disponível, mas a resposta deixa explícito que o
             # índice não foi produzido pelo modelo de exposição ajustada.
             print(f"[UPDATE] Falha no modelo temporal: {error}. Gerando fallback histórico.")
-            fallback_risk.calcAccidents()
+            carregarFallbackRisco().calcAccidents()
             risk_path = BASE_DIR / "API" / "content" / "accident-history" / "risk" / "savedData.json"
             if risk_path.exists():
                 payload = json.loads(risk_path.read_text(encoding="utf-8"))
