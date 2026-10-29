@@ -6,12 +6,12 @@ from pathlib import Path
 
 import pandas as pd
 
-from RoadFixerAPI.ModeloEstatistico.context_features import add_traffic
-from RoadFixerAPI.ModeloEstatistico.core.riskCalculations import (
+from RoadFixerAPI.ModeloResolucao.context_features import add_traffic
+from RoadFixerAPI.ModeloResolucao.core.riskCalculations import (
     calculateFatorClimatico,
     calculateGravity,
 )
-from RoadFixerAPI.ModeloEstatistico.grid_search import emergency_capture, make_dataset
+from RoadFixerAPI.ModeloResolucao.grid_search import emergency_capture, make_dataset
 
 
 class ModelIntegrityTests(unittest.TestCase):

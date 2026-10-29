@@ -21,7 +21,7 @@ from sklearn.model_selection import GridSearchCV
 try:  # Funciona como módulo e como script executado da pasta do projeto.
     from .context_features import enrich
 except ImportError:  # pragma: no cover - caminho de execução por CLI
-    from context_features import enrich
+    from RoadFixerAPI.ModeloResolucao.context_features import enrich
 
 
 BASE_DIR = Path(__file__).resolve().parent
