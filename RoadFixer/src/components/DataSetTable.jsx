@@ -1,5 +1,6 @@
 import styles from "./DataSetTable.module.css";
 import ScaffoldButton from "./Button/ScaffoldButton";
+import { downloadDataset } from "../utils/downloadDataset";
 
 export function DatasetTable({ isOpen, onClose, headers, title, datasets }) {
   if (!isOpen) return null;
@@ -36,8 +37,12 @@ export function DatasetTable({ isOpen, onClose, headers, title, datasets }) {
                         dt
                       ) : (
                         <ScaffoldButton
-                          value="Detalhes"
-                          action={() => window.open(dt.url, "_blank")}
+                          value={dt.body ? "BAIXAR" : "DETALHES"}
+                          action={() =>
+                            dt.body
+                              ? downloadDataset(dt).catch(console.error)
+                              : window.open(dt.url, "_blank")
+                          }
                           orange={false}
                           small={true}
                         />

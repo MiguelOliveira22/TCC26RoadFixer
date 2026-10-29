@@ -2,7 +2,8 @@
     "content": [
         {
             "id": 1,
-            "data": [ "Acidentes Ocorridos", { "url": "$server/accidentsDatasets" } ]
+            "data": ["Acidentes Ocorridos", { "url": "$server/getDataset", "body": { "dataset_name": "accidents" } }
+      ]
         },
         {
             "id": 2,

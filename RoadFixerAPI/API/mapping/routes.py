@@ -27,12 +27,11 @@ def assignRoutes(api: FastAPI):
             
             zip_buffer = io.BytesIO()
 
-            with zipfile.ZipFile(zip_buffer, "a", zipfile.ZIP_DEFLATED, False) as zip_file:
-                for raiz, diretorio, arquivos in os.walk(filepath):
+            with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zip_file:
+                for raiz, _, arquivos in os.walk(filepath):
                     for arquivo in arquivos:
                         caminho_completo = Path(raiz, arquivo)
-                        caminho_relativo = Path(diretorio, arquivo)
-
+                        caminho_relativo = caminho_completo.relative_to(filepath)
                         zip_file.write(caminho_completo, caminho_relativo)
             
             zip_buffer.seek(0)

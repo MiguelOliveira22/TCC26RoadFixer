@@ -2,6 +2,7 @@ import styles from "./DataCollection.module.css";
 import ScaffoldButton from "./Button/ScaffoldButton";
 import { DatasetTable } from "../components/DataSetTable";
 import { useState } from "react";
+import { downloadDataset } from "../utils/downloadDataset";
 
 export default function DataCollection({ headers, reports, title, buttonText }) {
   const [openPopup, setOpenPopup] = useState(false);  
@@ -26,8 +27,12 @@ export default function DataCollection({ headers, reports, title, buttonText }) 
                   <td key={idx} className={styles.td}>
                     {dt && typeof dt === "object" && dt.url != null ? (
                       <ScaffoldButton
-                        value="DETALHES"
-                        action={dt.url ? () => window.open(dt.url, '_blank') : dt.action}
+                        value={dt.body ? "BAIXAR" : "DETALHES"}
+                        action={() =>
+                          dt.body
+                            ? downloadDataset(dt).catch(console.error)
+                            : window.open(dt.url, "_blank")
+                        }
                         orange={false}
                         small={true}
                       />
