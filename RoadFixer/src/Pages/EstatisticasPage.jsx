@@ -115,7 +115,7 @@ export default function EstatisticasPage() {
       {/* SEÇÃO 3: TABELA HISTÓRICA DE ACIDENTES */}
       <section className={styles.section}>
         <DataCollection
-          headers={["LOCALIZAÇÃO", "STATUS", "GRAVIDADE", "LINK"]}
+          headers={["DATA", "TRECHO QUILOMÉTRICO", "LINK"]}
           reports={reports}
           title="REGISTROS HISTÓRICOS DE ACIDENTES"
           buttonText={<span>VER MAIS DADOS HISTÓRICOS</span>}

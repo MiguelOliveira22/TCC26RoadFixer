@@ -7,10 +7,6 @@
         {
             "id": 2,
             "data": [ "Dados de Tempo", { "url": "$server/getDataset", "body": { "dataset_name": "weather-data" } } ]
-        },
-        {
-            "id": 3,
-            "data": [ "Dados de Radasres", { "url": "$server/datasets" } ]
         }
     ]
 }
