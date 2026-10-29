@@ -8,6 +8,7 @@ import zipfile
 from xhtml2pdf import pisa
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import StreamingResponse, JSONResponse
+from functools import lru_cache
 
 from RoadFixerAPI.database import get_database
 
@@ -67,9 +68,17 @@ def assignRoutes(api: FastAPI):
     async def statsData() -> JSONResponse:
         try:
             with open(Path(BASE_DIR_CONTENT, "stats", "content.json"), encoding="utf-8") as file:
-                return JSONResponse(content=json.load(file))
+                content = json.load(file)
         except OSError:
-            raise HTTPException(status_code=503, detail=f"O arquivo não foi encontrado.")
+            raise HTTPException(status_code=503, detail="O arquivo não foi encontrado.")
+
+        total = totalAcidentes(Path(BASE_DIR_DATASETS, "accidents", "processed"))
+        total_fmt = f"{total:,}".replace(",", ".")  # 12.345 (padrão pt-BR)
+
+        for item in content["content"]:
+            item["desc"] = item["desc"].replace("{total_acidentes}", total_fmt)
+
+        return JSONResponse(content=content)
     
     @api.get("/accidentHistory")
     async def getAccidentHistory() -> JSONResponse:
@@ -109,3 +118,20 @@ def assignRoutes(api: FastAPI):
     @api.get("/predictionData")
     def getPredictionData():
         return get_database().get_predictions()
+
+    def _assinatura(pasta: Path) -> tuple:
+        return tuple((p.name, p.stat().st_mtime) for p in sorted(pasta.glob("*.csv")))
+
+    @lru_cache(maxsize=1)
+    def _contar_cacheado(pasta_str: str, assinatura: tuple) -> int:
+        return contarAcidentes(Path(pasta_str))
+
+    def totalAcidentes(pasta: Path) -> int:
+        return _contar_cacheado(str(pasta), _assinatura(pasta))
+
+    def contarAcidentes(pasta: Path) -> int:
+        total = 0
+        for csv_path in pasta.glob("*.csv"):
+            with open(csv_path, encoding="utf-8") as f:
+                total += max(sum(1 for _ in f) - 1, 0)  # -1 = cabeçalho
+        return total

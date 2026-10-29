@@ -10,7 +10,7 @@
         },
         {
             "id": 3,
-            "data": [ "Focos de Acidentes", { "url": "$server/datasets" } ]
+            "data": [ "Dados de Radasres", { "url": "$server/datasets" } ]
         }
     ]
 }

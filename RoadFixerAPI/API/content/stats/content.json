@@ -1,12 +1,12 @@
 {
     "content": [
         {
-            "title": "Teste Base",
-            "desc": "Coisa"
+            "title": "Histórico de dados",
+            "desc": "Desde 2020"
         },
         {
-            "title": "Teste Base 2",
-            "desc": "Coisa 2"
+            "title": "Quantidade de acidentes",
+            "desc": "{total_acidentes} registrados"
         },
         {
             "title": "Teste Base 3",
