@@ -76,7 +76,7 @@ def assignRoutes(api: FastAPI):
         total_fmt = f"{total:,}".replace(",", ".")  # 12.345 (padrão pt-BR)
 
         for item in content["content"]:
-            item["desc"] = item["desc"].replace("{total_acidentes}", total_fmt)
+            item["title"] = item["title"].replace("{total_acidentes}", total_fmt)
 
         return JSONResponse(content=content)
     

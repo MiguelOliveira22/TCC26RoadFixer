@@ -1,24 +1,16 @@
 {
     "content": [
         {
+            "title": "SP-330",
+            "desc": "Rodocia em foco"
+        },
+        {
             "title": "Histórico de dados",
             "desc": "Desde 2020"
         },
         {
-            "title": "Quantidade de acidentes",
-            "desc": "{total_acidentes} registrados"
-        },
-        {
-            "title": "Teste Base 3",
-            "desc": "Coisa 3"
-        },
-        {
-            "title": "Teste Base 4",
-            "desc": "Coisa 4"
-        },
-        {
-            "title": "Teste Base 5",
-            "desc": "Coisa 5"
+            "title": "{total_acidentes}",
+            "desc": "Acidentes registrados"
         }
     ]
 }

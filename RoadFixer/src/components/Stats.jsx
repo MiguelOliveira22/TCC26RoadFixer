@@ -5,11 +5,7 @@ import styles from "./Stats.module.css";
 import { apiPath } from "../Constants";
 
 export default function Stats() {
-  const [ cards, setCards ] = useState([
-    { title: "BR 330", desc: "Rodovia em Foco" },
-    { title: "Acidentes Registrados", desc: "1.204 milhões" },
-    { title: "Tempo de Resposta", desc: "12 min" },
-  ]);
+  const [ cards, setCards ] = useState([]);
 
   useEffect(() => {
     async function loadNetwork() {
