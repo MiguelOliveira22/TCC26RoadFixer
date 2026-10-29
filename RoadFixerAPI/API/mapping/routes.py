@@ -19,7 +19,10 @@ BASE_DIR_DATASETS = Path(Path(__file__).parent.parent.parent, "data")
 def assignRoutes(api: FastAPI):
     @api.post("/getDataset")
     async def sendDataset(request: DatasetRequest) -> StreamingResponse:
-        filepath = Path(BASE_DIR_DATASETS, request.dataset_name, "processed")
+        if(request.dataset_name != "weather-data"):
+            filepath = Path(BASE_DIR_DATASETS, request.dataset_name, "processed")
+        else:
+            filepath = Path(BASE_DIR_DATASETS, request.dataset_name)
 
         try:
             if not os.path.exists(filepath):
