@@ -4,13 +4,17 @@ import { useEffect, useState } from "react";
 import { apiPath } from "../Constants";
 
 async function getReports() {
-  const res = await fetch(apiPath + "accidentHistory/");
+  const res = await fetch(apiPath + "accidentHistory");
+  if (!res.ok) throw new Error(`accidentHistory: HTTP ${res.status}`);
   const data = await res.json();
-  const formatted = data.content.map((valor) => ({
+  return (data.content ?? []).map((valor) => ({
     id: valor.id,
-    data: valor.data,
+    data: valor.data.map((d) =>
+      d && typeof d === "object" && d.url
+        ? { ...d, url: d.url.replace("$server/", apiPath) }
+        : d
+    ),
   }));
-  return formatted;
 }
 
 export default function MonitoramentoPage() {
@@ -57,19 +61,16 @@ export default function MonitoramentoPage() {
           <div className={styles.kpiCard}>
             <span className={styles.kpiLabel}>Câmeras Ativas</span>
             <strong className={styles.kpiValue}>01 / 01</strong>
-            <span className={styles.kpiStatusGood}>• Transmitindo HD</span>
           </div>
 
           <div className={styles.kpiCard}>
-            <span className={styles.kpiLabel}>Ocorrências Hoje</span>
+            <span className={styles.kpiLabel}>Ocorrências desde o mês anterior</span>
             <strong className={styles.kpiValue}>{reports.length}</strong>
-            <span className={styles.kpiStatusAlert}>• Requer Atenção</span>
           </div>
 
           <div className={styles.kpiCard}>
             <span className={styles.kpiLabel}>Status da Rodovia</span>
             <strong className={styles.kpiValue}>Tráfego Normal</strong>
-            <span className={styles.kpiStatusGood}>• Trecho Cajamar</span>
           </div>
         </div>
 
@@ -91,7 +92,7 @@ export default function MonitoramentoPage() {
                   <span className={styles.cameraLocation}>Trecho Cajamar</span>
                 </div>
               </div>
-              <span className={styles.kmBadge}>Km 36 + 000m</span>
+              <span className={styles.kmBadge}>Km 36</span>
             </div>
 
             <div className={styles.iframeWrapper}>
@@ -108,7 +109,7 @@ export default function MonitoramentoPage() {
         {/* Tabela de Histórico */}
         <div className={styles.dataCollectionSection}>
           <DataCollection
-            headers={["LOCALIZAÇÃO", "STATUS", "GRAVIDADE", "LINK"]}
+            headers={["DATA", "TRECHO QUILOMÉTRICO", "LINK"]}
             reports={reports}
             title="HISTÓRICO DE OCORRÊNCIAS"
             buttonText={<span>VER HISTÓRICO COMPLETO</span>}

@@ -4,8 +4,11 @@ import { DatasetTable } from "../components/DataSetTable";
 import { useState } from "react";
 import { downloadDataset } from "../utils/downloadDataset";
 
+const MAX_LINHAS_PAGINA = 3;
+
 export default function DataCollection({ headers, reports, title, buttonText }) {
-  const [openPopup, setOpenPopup] = useState(false);  
+    const [openPopup, setOpenPopup] = useState(false);
+  const lista = reports ?? [];
 
   return (
     <section id="relatos" className={styles.section}>
@@ -20,9 +23,9 @@ export default function DataCollection({ headers, reports, title, buttonText }) 
               ))}
             </tr>
           </thead>
-          <tbody>
-            {(reports ?? []).map((link) => (
-              <tr key={link.id} className={styles.tr}>
+            <tbody>
+              {lista.slice(0, MAX_LINHAS_PAGINA).map((link) => (
+                <tr key={link.id} className={styles.tr}>
                 {link.data.map((dt, idx) => (
                   <td key={idx} className={styles.td}>
                     {dt && typeof dt === "object" && dt.url != null ? (
@@ -46,20 +49,22 @@ export default function DataCollection({ headers, reports, title, buttonText }) 
           </tbody>
         </table>
 
-        <div className={styles.buttonContainer}>
-          <ScaffoldButton
-            value={buttonText}
-            action={() => setOpenPopup(true)}
-            orange={false}
-          />
-        </div>
+        {lista.length > MAX_LINHAS_PAGINA && (
+          <div className={styles.buttonContainer}>
+            <ScaffoldButton
+              value={buttonText}
+              action={() => setOpenPopup(true)}
+              orange={false}
+            />
+          </div>
+        )}
 
         <DatasetTable
           isOpen={openPopup}
           onClose={() => setOpenPopup(false)}
           headers={headers}
           title={title}
-          datasets={reports}
+          datasets={lista}
         />
       </div>
     </section>

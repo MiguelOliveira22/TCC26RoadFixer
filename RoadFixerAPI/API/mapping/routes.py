@@ -1,3 +1,5 @@
+import csv
+from datetime import date, timedelta
 from pathlib import Path
 
 import io
@@ -82,11 +84,56 @@ def assignRoutes(api: FastAPI):
     
     @api.get("/accidentHistory")
     async def getAccidentHistory() -> JSONResponse:
-        try:
-            with open(Path(BASE_DIR_CONTENT, "accident-history", "content.json"), encoding="utf-8") as file:
-                return JSONResponse(json.load(file))
-        except:
-            raise HTTPException(status_code=503, detail=f"O arquivo não foi encontrado.")
+        hoje = date.today()
+        anterior = hoje.replace(day=1) - timedelta(days=1)
+        alvo = {(hoje.year, hoje.month), (anterior.year, anterior.month)}
+
+        # em janeiro, o mês anterior é dezembro do ano passado -> lê dois arquivos
+        anos = sorted({ano for ano, _ in alvo})
+
+        acidentes = []
+        for ano in anos:
+            for i, linha in lerAcidentes(ano):
+                try:
+                    ano_l, mes_l = int(linha["DATA"][:4]), int(linha["DATA"][5:7])
+                except (ValueError, KeyError):
+                    continue
+                if (ano_l, mes_l) in alvo:
+                    acidentes.append((linha["DATA"], linha["HORA"], ano, i, linha))
+
+        acidentes.sort(reverse=True)  # mais recentes primeiro
+
+        content = []
+        for data, hora, ano, i, linha in acidentes:
+            d = date.fromisoformat(data)
+            try:
+                km = f"{float(linha['KM']):.2f}".replace(".", ",")
+            except ValueError:
+                km = linha["KM"]
+
+            sentido = linha.get("SENTIDO", "").strip().title()  # NORTE -> Norte
+
+            trecho = f"{linha['RODOVIA']} KM {km}"
+            if sentido and sentido.upper() not in {"NÃO INFORMADO", "N/A"}:
+                trecho += f" · {sentido}"
+            
+            content.append({
+                "id": f"{ano}-{i}",
+                "data": [
+                    f"{d.strftime('%d/%m/%Y')} {hora[:5]}",
+                    trecho,
+                    {"url": f"$server/accidentDetail/{ano}/{i}"},
+                ],
+            })
+
+        return JSONResponse({"content": content})
+
+    @api.get("/accidentDetail/{ano}/{linha}")
+    async def getAccidentDetail(ano: int, linha: int) -> JSONResponse:
+        for i, row in lerAcidentes(ano):
+            if i == linha:
+                return JSONResponse(row)
+        raise HTTPException(status_code=404, detail="Acidente não encontrado.")
 
     @api.get("/riskData")
     async def getRiskData() -> JSONResponse:
@@ -135,3 +182,11 @@ def assignRoutes(api: FastAPI):
             with open(csv_path, encoding="utf-8") as f:
                 total += max(sum(1 for _ in f) - 1, 0)  # -1 = cabeçalho
         return total
+
+    def lerAcidentes(ano: int):
+        caminho = BASE_DIR_DATASETS / "accidents" / "processed" / f"p{ano}.csv"
+        if not caminho.exists():
+            return
+        with open(caminho, encoding="utf-8", newline="") as f:
+            for i, linha in enumerate(csv.DictReader(f)):
+                yield i, linha
